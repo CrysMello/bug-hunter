@@ -1,0 +1,262 @@
+{
+  "id": 326,
+  "plataforma": "backend",
+  "titulo": "O relatório que trava às segundas",
+  "subtitulo": "O relatório de vendas abre normalmente durante a semana, mas toda segunda-feira fica carregando até dar erro.",
+  "citacao": "Toda segunda é a mesma coisa: abro o relatório de vendas às 8h e ele fica carregando até dar erro. Nos outros dias funciona.",
+  "autorCitacao": "Diretora comercial, por e-mail",
+  "impacto": "MÉDIO",
+  "inicio": "Hoje (segunda), 08:05",
+  "ambiente": "Sistema interno · relatórios",
+  "objetivo": "Descubra o que a segunda-feira tem de especial e recomende a melhor ação. Cuidado: o que acontece junto nem sempre é a causa.",
+  "tempoTotal": 8,
+  "ordemColeta": ["log_erro", "historico_execucoes", "backup", "servidor", "crescimento"],
+  "pistas": [
+    {
+      "id": "relato_diretora",
+      "tipo": "relato",
+      "titulo": "E-mail da diretora",
+      "texto": ["\"Toda segunda o relatório não abre\"", "Reunião de resultados às 9h", "\"Nos outros dias abre em segundos\""],
+      "hora": "08:05",
+      "evento": "Diretora reclama",
+      "inicial": true
+    },
+    {
+      "id": "log_erro",
+      "tipo": "log",
+      "titulo": "Log do relatório",
+      "texto": ["[07:00:00] relatório de vendas iniciado (período: sexta a domingo)", "[07:01:00] TEMPO ESGOTADO após 60s", "Terça a sexta: concluído em 15 a 25s"],
+      "hora": "07:01",
+      "evento": "Relatório estoura o tempo"
+    },
+    {
+      "id": "historico_execucoes",
+      "tipo": "metrica",
+      "titulo": "Histórico de execuções",
+      "texto": ["Relatório de terça (1 dia, 8 mil vendas): 18s ✔", "Relatório de segunda (3 dias, 45 mil vendas): erro ✘", "Terça da Black Friday (1 dia, 52 mil vendas): erro ✘"],
+      "apoia": ["h_n1"],
+      "refuta": ["h_backup", "h_acessos"]
+    },
+    {
+      "id": "backup",
+      "tipo": "ambiente",
+      "titulo": "Rotina de backup",
+      "texto": ["Backup completo: domingo às 23:00", "Termina por volta das 02:10", "O relatório roda às 07:00"],
+      "hora": "02:10",
+      "evento": "Backup termina",
+      "refuta": ["h_backup"]
+    },
+    {
+      "id": "servidor",
+      "tipo": "metrica",
+      "titulo": "Saúde do servidor",
+      "texto": ["Memória: 41% durante o relatório", "CPU do banco: 22%", "Cada consulta leva cerca de 1ms"],
+      "refuta": ["h_memoria"]
+    },
+    {
+      "id": "crescimento",
+      "tipo": "metrica",
+      "titulo": "Crescimento das vendas",
+      "texto": ["Vendas de fim de semana: 15 mil (2024) → 45 mil (hoje)", "O relatório começou a falhar em agosto", "O tempo do relatório cresceu junto com as vendas"],
+      "apoia": ["h_n1"]
+    },
+    {
+      "id": "codigo_relatorio",
+      "tipo": "codigo",
+      "titulo": "Código do relatório",
+      "texto": ["vendas = Venda.filtrar(periodo)", "para cada venda:", "    linha(venda.cliente.nome)", "# busca o cliente no banco, um por um"],
+      "apoia": ["h_n1"]
+    },
+    {
+      "id": "log_banco",
+      "tipo": "log",
+      "titulo": "Consultas no banco às 07:00",
+      "texto": ["SELECT * FROM clientes WHERE id = ? · 45.118 vezes", "Tempo médio: 1,1ms cada", "Total: cerca de 50s só nessa consulta"],
+      "apoia": ["h_n1"]
+    },
+    {
+      "id": "base_teste",
+      "tipo": "requisito",
+      "titulo": "Base de homologação",
+      "texto": ["500 vendas no total", "Relatório abre em 1 segundo", "Nenhum teste de desempenho com volume real"],
+      "apoia": ["h_n1"]
+    },
+    {
+      "id": "contagem_consultas",
+      "tipo": "comparacao",
+      "titulo": "Consultas por tamanho do relatório",
+      "texto": ["1.000 vendas: 1.002 consultas · 2s", "10.000 vendas: 10.002 consultas · 19s", "45.000 vendas: 45.002 consultas · cerca de 85s", "Uma consulta por venda"],
+      "apoia": ["h_n1"]
+    },
+    {
+      "id": "teste_tarde",
+      "tipo": "comparacao",
+      "titulo": "Relatório rodado à tarde",
+      "texto": ["Mesmo período (sexta a domingo)", "Rodado às 15h, sem backup nenhum", "Falhou do mesmo jeito"],
+      "refuta": ["h_backup"]
+    },
+    {
+      "id": "teste_madrugada",
+      "tipo": "comparacao",
+      "titulo": "Relatório rodado de madrugada",
+      "texto": ["Rodado às 03h, sem ninguém usando o sistema", "Falhou do mesmo jeito", "Não depende de quantas pessoas estão acessando"],
+      "refuta": ["h_acessos"]
+    },
+    {
+      "id": "perfil_memoria",
+      "tipo": "metrica",
+      "titulo": "Memória do relatório",
+      "texto": ["Pico do processo: 1,2 GB de 8 GB", "Nenhum aviso de memória cheia"],
+      "refuta": ["h_memoria"]
+    },
+    {
+      "id": "teste_por_dia",
+      "tipo": "comparacao",
+      "titulo": "Fim de semana dia a dia",
+      "texto": ["Sexta sozinha: 14 mil vendas · 27s ✔", "Sábado sozinho: 19 mil vendas · 36s ✔", "Domingo sozinho: 12 mil vendas · 23s ✔", "Os três juntos: passa de 60s ✘"],
+      "apoia": ["h_n1"],
+      "refuta": ["h_dados"]
+    },
+    {
+      "id": "excel_lento",
+      "tipo": "email",
+      "titulo": "Exportação para Excel",
+      "texto": ["A exportação usa o mesmo código do relatório", "Também faz uma consulta por venda", "Lenta pelo mesmo motivo"],
+      "apoia": ["h_n1"]
+    }
+  ],
+  "hipoteses": [
+    {
+      "id": "h_backup",
+      "texto": "O backup de domingo ainda está rodando e deixa o banco lento",
+      "correta": false,
+      "feedback": "O backup termina às 02:10, horas antes do relatório. E o mesmo relatório falha à tarde, sem backup nenhum, e numa terça de Black Friday.",
+      "teste": { "resultado": "Você rodou o relatório de segunda às 15h.", "revela": "teste_tarde" }
+    },
+    {
+      "id": "h_acessos",
+      "texto": "O pico de acessos na segunda de manhã sobrecarrega o servidor",
+      "correta": false,
+      "feedback": "O relatório falha até de madrugada, com o sistema vazio. Não é quantas pessoas usam, é quanto o relatório tem para processar.",
+      "teste": { "resultado": "Você rodou o relatório às 03h.", "revela": "teste_madrugada" }
+    },
+    {
+      "id": "h_n1",
+      "texto": "O relatório faz uma consulta por venda, e o volume do fim de semana estoura o tempo limite",
+      "correta": true,
+      "feedback": "Isso. Para mostrar o nome do cliente, o código busca cada cliente no banco, um por um. Cada consulta é rápida, mas são 45 mil delas no fim de semana. O relatório de segunda cobre três dias de vendas e passa do limite de 60 segundos. Não é a segunda-feira: é o volume. A terça da Black Friday falhou pelo mesmo motivo.",
+      "teste": { "resultado": "Você rodou o relatório com tamanhos diferentes e contou as consultas.", "revela": "contagem_consultas" }
+    },
+    {
+      "id": "h_memoria",
+      "texto": "O servidor está sem memória",
+      "correta": false,
+      "feedback": "O relatório usa 1,2 GB de 8 GB. A máquina está folgada; o tempo vai embora em milhares de idas e vindas ao banco.",
+      "teste": { "resultado": "Você mediu a memória durante o relatório.", "revela": "perfil_memoria" }
+    },
+    {
+      "id": "h_dados",
+      "texto": "Alguma venda do fim de semana tem dado corrompido que trava o relatório",
+      "correta": false,
+      "feedback": "Cada dia do fim de semana sozinho abre normalmente. Se houvesse um dado corrompido, algum deles falharia.",
+      "teste": { "resultado": "Você rodou sexta, sábado e domingo separados.", "revela": "teste_por_dia" }
+    }
+  ],
+  "devs": [
+    {
+      "id": "andre",
+      "nome": "André",
+      "cargo": "Desenvolvedor Backend",
+      "tracos": ["Escreveu o relatório", "Fã de ORM"],
+      "fala": "Esse relatório é simples: pego as vendas e mostro o nome do cliente de cada uma. Funciona desde 2023. Deve ser o backup, que roda no fim de semana.",
+      "revela": "codigo_relatorio",
+      "confiavel": false
+    },
+    {
+      "id": "beatriz",
+      "nome": "Beatriz",
+      "cargo": "Administradora de Banco de Dados",
+      "tracos": ["Olha o banco por dentro", "Precisa"],
+      "fala": "Toda segunda às 7h aparecem dezenas de milhares de consultas idênticas, só muda o ID do cliente. Cada uma é rapidíssima. O problema é a quantidade.",
+      "revela": "log_banco",
+      "confiavel": true
+    },
+    {
+      "id": "caetano",
+      "nome": "Caetano",
+      "cargo": "QA",
+      "tracos": ["Testa em homologação", "Sincero"],
+      "fala": "Testei esse relatório quando ele foi criado, na base de homologação. Abria em um segundo. Mas lá tem umas 500 vendas, só.",
+      "revela": "base_teste",
+      "confiavel": true
+    }
+  ],
+  "caos": [
+    {
+      "id": "caos_cores",
+      "titulo": "Gráfico com cores trocadas",
+      "relatos": 2,
+      "resultado": "A legenda inverte duas categorias. Bug visual, sem relação com a lentidão."
+    },
+    {
+      "id": "caos_excel",
+      "titulo": "Exportação para Excel lenta às segundas",
+      "relatos": 6,
+      "resultado": "Parece outro problema, mas a exportação reaproveita o mesmo código. Lenta pelo mesmo motivo.",
+      "revela": "excel_lento"
+    },
+    {
+      "id": "caos_senha",
+      "titulo": "Senha expirada de três usuários",
+      "relatos": 3,
+      "resultado": "Política de troca de senha a cada 90 dias. Funcionando como esperado."
+    }
+  ],
+  "conexoes": [
+    { "pistas": ["codigo_relatorio", "log_banco"], "insight": "Um cliente buscado por vez: 45 mil vendas viram 45 mil consultas." },
+    { "pistas": ["teste_por_dia", "contagem_consultas"], "insight": "Cada dia sozinho cabe em 60s; somados, passam. O tempo cresce junto com o número de vendas." },
+    { "pistas": ["historico_execucoes", "crescimento"], "insight": "Não é a segunda-feira, é o volume: a terça da Black Friday também falhou." },
+    { "pistas": ["base_teste", "crescimento"], "insight": "Testado com 500 vendas, rodando com 45 mil: o problema nunca apareceria em homologação." },
+    { "pistas": ["log_erro", "contagem_consultas"], "insight": "45 mil consultas dão cerca de 85s, acima do limite de 60s." },
+    { "pistas": ["excel_lento", "codigo_relatorio"], "insight": "A exportação repete o mesmo laço, por isso também é lenta." }
+  ],
+  "recomendacoes": [
+    {
+      "id": "r_completo",
+      "texto": "Buscar os clientes de uma vez só (junção ou carregamento em lote), testar o relatório com volume de produção e monitorar o tempo dele para agir antes de estourar",
+      "qualidade": "melhor",
+      "feedback": "Com uma consulta só, 45 mil vendas levam poucos segundos. O teste com volume real evita a próxima surpresa, e o monitoramento avisa enquanto ainda há folga."
+    },
+    {
+      "id": "r_timeout",
+      "texto": "Aumentar o tempo limite do relatório para 5 minutos",
+      "qualidade": "parcial",
+      "feedback": "Funciona hoje, mas o tempo continua crescendo com as vendas. Na próxima Black Friday, estoura de novo."
+    },
+    {
+      "id": "r_dividir",
+      "texto": "Gerar o relatório de segunda dia a dia (sexta, sábado e domingo separados)",
+      "qualidade": "parcial",
+      "feedback": "Um contorno que a diretora vai odiar, e que para de funcionar quando um único dia passar de 60 segundos."
+    },
+    {
+      "id": "r_servidor",
+      "texto": "Contratar um servidor de banco mais potente",
+      "qualidade": "ruim",
+      "feedback": "Cada consulta já leva 1ms. O problema é fazer 45 mil delas, e isso nenhum servidor resolve."
+    },
+    {
+      "id": "r_backup",
+      "texto": "Mudar o horário do backup de domingo",
+      "qualidade": "ruim",
+      "feedback": "O backup não tem relação. O relatório continua falhando."
+    },
+    {
+      "id": "r_madrugada",
+      "texto": "Rodar o relatório às 5h, antes de todo mundo chegar",
+      "qualidade": "ruim",
+      "feedback": "O relatório falha até às 3h com o sistema vazio. Mudar o horário não muda o volume."
+    }
+  ],
+  "licao": "Correlação não é causa: o problema parecia ser a segunda-feira, mas era o volume. Código que faz uma consulta por item funciona com 500 registros e quebra com 45 mil. Teste com dados do tamanho da realidade."
+}

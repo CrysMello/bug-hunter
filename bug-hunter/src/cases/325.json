@@ -1,0 +1,264 @@
+{
+  "id": 325,
+  "plataforma": "app",
+  "titulo": "O app que descarrega a bateria",
+  "subtitulo": "Depois da versão 7.2, clientes dizem que o app acaba com a bateria, mesmo fechado.",
+  "citacao": "Meu celular chegava com 60% no fim do dia. Agora acaba às três da tarde, e o sistema diz que é o app de vocês, mesmo sem eu abrir!",
+  "autorCitacao": "Cliente, em avaliação na loja de apps",
+  "impacto": "MÉDIO",
+  "inicio": "Hoje, 15:10",
+  "ambiente": "App de delivery (iOS e Android) · v7.2",
+  "objetivo": "Descubra o que o app faz enquanto ninguém está usando e recomende a melhor ação. O cliente usa o app principalmente quando não está usando.",
+  "tempoTotal": 8,
+  "ordemColeta": ["bateria_sistema", "avaliacoes", "release_72", "permissao", "push_stats"],
+  "pistas": [
+    {
+      "id": "relato_cliente",
+      "tipo": "relato",
+      "titulo": "Avaliação na loja",
+      "texto": ["★☆☆☆☆ \"Acabou com a minha bateria\"", "\"Nem abro o app durante o dia\"", "Celular comprado este ano", "App v7.2 · iOS"],
+      "hora": "15:10",
+      "evento": "Avaliação de 1 estrela",
+      "inicial": true
+    },
+    {
+      "id": "bateria_sistema",
+      "tipo": "metrica",
+      "titulo": "Tela de bateria do celular",
+      "texto": ["App de delivery: 38% da bateria do dia", "Em primeiro plano: 4 minutos", "Em segundo plano: 11 horas"],
+      "hora": "15:00",
+      "evento": "Bateria da cliente acaba",
+      "apoia": ["h_sdk"],
+      "refuta": ["h_tela"]
+    },
+    {
+      "id": "avaliacoes",
+      "tipo": "metrica",
+      "titulo": "Avaliações sobre bateria",
+      "texto": ["156 desde a v7.2 (antes: 3 por mês)", "Android e iOS", "Celulares novos e antigos"],
+      "refuta": ["h_sistema", "h_aparelho"]
+    },
+    {
+      "id": "release_72",
+      "tipo": "codigo",
+      "titulo": "Versão 7.2",
+      "texto": ["Banner animado na tela inicial", "Atualização automática de 12 bibliotecas", "Nenhuma mudança no nosso código de localização", "Configuração remota (feature flags) disponível"],
+      "hora": "07:00",
+      "evento": "v7.2 publicada",
+      "apoia": ["h_sdk"]
+    },
+    {
+      "id": "permissao",
+      "tipo": "metrica",
+      "titulo": "Permissão de localização",
+      "texto": ["Clientes com localização \"Sempre permitir\": 22%", "Entre quem reclama de bateria: 97%", "Permissão pedida em 2024 para \"lojas perto de você\""],
+      "apoia": ["h_sdk"]
+    },
+    {
+      "id": "push_stats",
+      "tipo": "metrica",
+      "titulo": "Notificações push",
+      "texto": ["3 notificações por cliente por dia", "Igual à versão 7.1"],
+      "refuta": ["h_push"]
+    },
+    {
+      "id": "dependencias",
+      "tipo": "codigo",
+      "titulo": "Bibliotecas atualizadas",
+      "texto": ["geoads-sdk: 3.8.2 → 4.0.0 (versão major)", "Aprovada pelo robô de atualização de dependências", "Changelog: não lido"],
+      "apoia": ["h_sdk"]
+    },
+    {
+      "id": "changelog_sdk",
+      "tipo": "requisito",
+      "titulo": "Changelog do GeoAds 4.0",
+      "texto": ["\"Nova coleta de visitas em segundo plano\"", "Ligada por padrão se a localização for \"Sempre permitir\"", "Para desligar: backgroundCollection(false)"],
+      "apoia": ["h_sdk"]
+    },
+    {
+      "id": "plano_teste",
+      "tipo": "requisito",
+      "titulo": "Plano de testes da v7.2",
+      "texto": ["Testes funcionais: 100% ✔", "Nenhum teste de consumo de bateria", "Celulares de teste ficam sempre no carregador"],
+      "apoia": ["h_sdk"]
+    },
+    {
+      "id": "teste_perfil",
+      "tipo": "comparacao",
+      "titulo": "Teste com o app fechado por 2 horas",
+      "texto": ["\"Sempre permitir\": GPS ligado 214 vezes · −19% de bateria", "\"Durante o uso\": GPS ligado 0 vezes · −2% de bateria", "Quem liga o GPS: geoads-sdk"],
+      "apoia": ["h_sdk"]
+    },
+    {
+      "id": "profiler_tela",
+      "tipo": "metrica",
+      "titulo": "Consumo do banner animado",
+      "texto": ["Com o app aberto: 1% de CPU", "Com o app fechado: a animação não roda"],
+      "refuta": ["h_tela"]
+    },
+    {
+      "id": "log_despertar",
+      "tipo": "log",
+      "titulo": "O que acordou o celular",
+      "texto": ["App acordou o celular 1.240 vezes em 12 horas", "Por notificação push: 3", "Por pedido de localização: 1.237"],
+      "apoia": ["h_sdk"],
+      "refuta": ["h_push"]
+    },
+    {
+      "id": "teste_versoes",
+      "tipo": "comparacao",
+      "titulo": "Mesmos celulares, versões diferentes",
+      "texto": ["Sem o app: bateria normal", "Com a v7.1: bateria normal", "Com a v7.2: bateria despenca", "Mesmo sistema operacional nos três"],
+      "apoia": ["h_sdk"],
+      "refuta": ["h_sistema"]
+    },
+    {
+      "id": "aparelhos",
+      "tipo": "metrica",
+      "titulo": "Aparelhos afetados",
+      "texto": ["Modelos de 2018 a 2026", "Celular lançado este ano perde 30% por dia", "Saúde da bateria dos afetados: normal"],
+      "refuta": ["h_aparelho"]
+    },
+    {
+      "id": "icone_gps",
+      "tipo": "email",
+      "titulo": "Setinha de localização",
+      "texto": ["Ícone de localização aceso com o app fechado", "Só para quem deu \"Sempre permitir\"", "É o sistema avisando: alguém usa o GPS em segundo plano"],
+      "apoia": ["h_sdk"]
+    }
+  ],
+  "hipoteses": [
+    {
+      "id": "h_tela",
+      "texto": "O novo banner animado da tela inicial gasta muita bateria",
+      "correta": false,
+      "feedback": "O banner só roda com o app aberto, e os clientes passam 4 minutos por dia nele. O consumo acontece nas outras 11 horas.",
+      "teste": { "resultado": "Você mediu o consumo do banner no perfilador.", "revela": "profiler_tela" }
+    },
+    {
+      "id": "h_push",
+      "texto": "Notificações push em excesso estão acordando o celular",
+      "correta": false,
+      "feedback": "São só 3 notificações por dia, iguais às da versão anterior. Quem acorda o celular é outra coisa.",
+      "teste": { "resultado": "Você registrou tudo que acordou o celular durante 12 horas.", "revela": "log_despertar" }
+    },
+    {
+      "id": "h_sdk",
+      "texto": "Uma biblioteca de terceiros atualizada passou a usar o GPS em segundo plano",
+      "correta": true,
+      "feedback": "Isso. O robô de dependências atualizou o SDK de anúncios GeoAds para a versão 4.0, uma versão major. Ela liga por padrão uma \"coleta de visitas em segundo plano\" para quem deu permissão de localização \"Sempre\". Para 22% dos clientes, o GPS passou a ser ligado centenas de vezes por dia, com o app fechado. Nenhuma linha do nosso código mudou.",
+      "teste": { "resultado": "Você deixou celulares de teste com o app fechado e mediu o uso de GPS.", "revela": "teste_perfil" }
+    },
+    {
+      "id": "h_sistema",
+      "texto": "Uma atualização do Android ou do iOS causou o consumo",
+      "correta": false,
+      "feedback": "Acontece nos dois sistemas e só com a v7.2 instalada. Com a v7.1, no mesmo celular e sistema, a bateria é normal.",
+      "teste": { "resultado": "Você comparou os mesmos celulares sem o app, com a v7.1 e com a v7.2.", "revela": "teste_versoes" }
+    },
+    {
+      "id": "h_aparelho",
+      "texto": "São celulares antigos com bateria gasta",
+      "correta": false,
+      "feedback": "Celulares lançados este ano também são afetados, com baterias saudáveis. Culpar o aparelho do cliente esconde o problema do app.",
+      "teste": { "resultado": "Você analisou modelo, idade e saúde da bateria dos afetados.", "revela": "aparelhos" }
+    }
+  ],
+  "devs": [
+    {
+      "id": "gustavo",
+      "nome": "Gustavo",
+      "cargo": "Desenvolvedor Mobile",
+      "tracos": ["Confia nas bibliotecas", "Fez o banner"],
+      "fala": "A v7.2 foi tranquila: o banner novo e uma atualização de rotina das bibliotecas, passou em todos os testes. Se gasta bateria, deve ser o banner, ele é pesadinho.",
+      "revela": "dependencias",
+      "confiavel": false
+    },
+    {
+      "id": "mariana",
+      "nome": "Mariana",
+      "cargo": "Analista de Marketing Digital",
+      "tracos": ["Dona do SDK de anúncios", "Orientada a dados"],
+      "fala": "O GeoAds mede quem visita a loja física depois de ver um anúncio. É essencial para as campanhas! A versão nova até promete medir melhor.",
+      "revela": "changelog_sdk",
+      "confiavel": true
+    },
+    {
+      "id": "rafaela",
+      "nome": "Rafaela",
+      "cargo": "QA Mobile",
+      "tracos": ["Cuidadosa", "Sincera"],
+      "fala": "Nos testes, o app fica aberto uns minutos e a gente fecha. E os celulares de teste vivem no carregador... nunca medimos bateria com o app parado por horas.",
+      "revela": "plano_teste",
+      "confiavel": true
+    }
+  ],
+  "caos": [
+    {
+      "id": "caos_gps",
+      "titulo": "Ícone de localização aceso o tempo todo",
+      "relatos": 19,
+      "resultado": "Parece só um ícone, mas é o sistema avisando que o GPS está sendo usado com o app fechado. É a mesma causa, visível.",
+      "revela": "icone_gps"
+    },
+    {
+      "id": "caos_banner",
+      "titulo": "Banner novo pesado no 3G",
+      "relatos": 5,
+      "resultado": "Imagem sem compressão. Gasta dados móveis com o app aberto, mas não explica a bateria com o app fechado."
+    },
+    {
+      "id": "caos_biometria",
+      "titulo": "Login com biometria falhando",
+      "relatos": 2,
+      "resultado": "Dois aparelhos com sensor sujo. Funciona após limpeza."
+    }
+  ],
+  "conexoes": [
+    { "pistas": ["bateria_sistema", "teste_perfil"], "insight": "11 horas em segundo plano: o app trabalha enquanto o cliente nem está usando." },
+    { "pistas": ["permissao", "teste_perfil"], "insight": "Só quem deu \"Sempre permitir\" é afetado, porque só para eles o GPS em segundo plano funciona." },
+    { "pistas": ["dependencias", "changelog_sdk"], "insight": "Um robô atualizou uma versão major, e a mudança de comportamento estava no changelog que ninguém leu." },
+    { "pistas": ["release_72", "avaliacoes"], "insight": "As reclamações de bateria começam com a v7.2." },
+    { "pistas": ["icone_gps", "log_despertar"], "insight": "A setinha acesa é o sinal visível das 1.237 vezes em que o GPS foi ligado." },
+    { "pistas": ["plano_teste", "bateria_sistema"], "insight": "Com celulares no carregador e o app aberto só por minutos, esse consumo era invisível nos testes." }
+  ],
+  "recomendacoes": [
+    {
+      "id": "r_completo",
+      "texto": "Desligar a coleta em segundo plano do SDK agora pela configuração remota, publicar versão que a deixe desligada por padrão, exigir leitura do changelog em atualizações major e incluir teste de bateria em segundo plano",
+      "qualidade": "melhor",
+      "feedback": "A configuração remota alivia todos os clientes hoje, sem esperar a revisão da loja. A nova versão garante o comportamento, e o processo passa a enxergar o que as bibliotecas de terceiros fazem em nome do app."
+    },
+    {
+      "id": "r_remover_sdk",
+      "texto": "Remover o SDK de anúncios na próxima versão",
+      "qualidade": "parcial",
+      "feedback": "Resolve, mas leva dias até a revisão da loja e a atualização dos clientes, enquanto a bateria segue acabando. E o marketing perde uma medição que dava para manter desligando só a coleta em segundo plano."
+    },
+    {
+      "id": "r_permissao",
+      "texto": "Pedir aos clientes que mudem a localização para \"Durante o uso\"",
+      "qualidade": "parcial",
+      "feedback": "Funciona para quem fizer, mas transfere para o cliente um problema criado pelo app, e a maioria nunca vai ver o aviso."
+    },
+    {
+      "id": "r_banner",
+      "texto": "Remover o banner animado da tela inicial",
+      "qualidade": "ruim",
+      "feedback": "O banner só roda com o app aberto. A bateria continua acabando nas 11 horas em que ele está fechado."
+    },
+    {
+      "id": "r_push",
+      "texto": "Reduzir as notificações push",
+      "qualidade": "ruim",
+      "feedback": "Elas acordam o celular 3 vezes por dia. O SDK acorda mais de mil."
+    },
+    {
+      "id": "r_dicas",
+      "texto": "Publicar dicas de economia de bateria nas redes sociais",
+      "qualidade": "ruim",
+      "feedback": "Comunicação sem correção soa como desculpa, e o app continua na lista de vilões da bateria."
+    }
+  ],
+  "licao": "Toda biblioteca de terceiros roda com as permissões do seu app e com o seu nome na loja. Atualização \"de rotina\" de versão major merece leitura do changelog. E o cliente usa o app principalmente quando não está usando: teste o que ele faz em segundo plano."
+}

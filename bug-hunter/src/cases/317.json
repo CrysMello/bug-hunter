@@ -1,0 +1,256 @@
+{
+  "id": 317,
+  "plataforma": "web",
+  "titulo": "O pedido que sumiu",
+  "subtitulo": "Clientes relatam que pedidos aprovados não aparecem no histórico.",
+  "citacao": "Paguei no cartão, apareceu aprovado, mas o pedido não está no meu histórico.",
+  "impacto": "ALTO",
+  "inicio": "Hoje, 10:42",
+  "ambiente": "Produção",
+  "objetivo": "Descubra a causa raiz e recomende a melhor ação. Nem todo bug é código. Às vezes é processo. Às vezes é configuração.",
+  "tempoTotal": 8,
+  "ordemColeta": ["log_producao", "metricas", "emails_suporte", "diff_ambiente", "deploy_v134", "alerta_fila"],
+  "pistas": [
+    {
+      "id": "relato_cliente",
+      "tipo": "relato",
+      "titulo": "Relato do cliente",
+      "texto": ["Pagamento aprovado às 10:41.", "Valor: R$ 299,90", "\"Não recebi e-mail nem consigo ver o pedido.\"", "ID: #A88421"],
+      "hora": "10:41",
+      "evento": "Primeiro relato de cliente",
+      "inicial": true
+    },
+    {
+      "id": "log_producao",
+      "tipo": "log",
+      "titulo": "Log do sistema (produção)",
+      "texto": ["[10:41:02] Pagamento aprovado", "[10:41:03] Enviando para serviço de pedidos", "[10:41:06] TIMEOUT (3000ms) ao publicar na fila", "[10:41:06] Retentativa agendada... (nunca executada)"],
+      "hora": "10:41",
+      "evento": "Timeout ao gravar pedido",
+      "apoia": ["h_fila"]
+    },
+    {
+      "id": "metricas",
+      "tipo": "metrica",
+      "titulo": "Métricas",
+      "texto": ["Erro ao gravar pedido: 0,2% → 18%", "Pico às 10:40", "CPU e consultas do banco: normais"],
+      "hora": "10:40",
+      "evento": "Pico de erros de gravação",
+      "apoia": ["h_fila"],
+      "refuta": ["h_banco"]
+    },
+    {
+      "id": "emails_suporte",
+      "tipo": "email",
+      "titulo": "E-mails do suporte",
+      "texto": ["12 reclamações nas últimas 2 horas", "Todas depois das 10:30", "Clientes, cartões e produtos diferentes"],
+      "refuta": ["h_dados"]
+    },
+    {
+      "id": "diff_ambiente",
+      "tipo": "ambiente",
+      "titulo": "Diferenças de ambiente",
+      "texto": ["Fila de mensagens: estável em staging", "Produção: instável desde 10:30", "Versão do código: igual nos dois"],
+      "apoia": ["h_fila"],
+      "refuta": ["h_codigo"]
+    },
+    {
+      "id": "deploy_v134",
+      "tipo": "codigo",
+      "titulo": "Deploy v1.34.0",
+      "texto": ["Publicado às 10:28 (João)", "Arquivos: checkout.css, CheckoutButton.tsx, i18n.json", "Nenhum arquivo do serviço de pedidos"],
+      "hora": "10:28",
+      "evento": "Deploy v1.34.0",
+      "refuta": ["h_codigo"]
+    },
+    {
+      "id": "alerta_fila",
+      "tipo": "metrica",
+      "titulo": "Alerta do monitoramento",
+      "texto": ["10:31 · Fila com atraso de publicação", "Severidade: aviso (ninguém foi notificado)"],
+      "hora": "10:31",
+      "evento": "Alerta: fila com atraso",
+      "apoia": ["h_fila"]
+    },
+    {
+      "id": "comparacao_execucoes",
+      "tipo": "comparacao",
+      "titulo": "Comparação de execuções",
+      "texto": ["Staging (ontem 15:00): pagamento ✔ pedido ✔ e-mail ✔ · 1,2s", "Produção (hoje 10:41): pagamento ✔ pedido ✘ timeout · e-mail ✘", "Mesma versão de código"],
+      "apoia": ["h_fila"],
+      "refuta": ["h_codigo"]
+    },
+    {
+      "id": "config_diff",
+      "tipo": "config",
+      "titulo": "Histórico de configuração",
+      "texto": ["10:30 · alterado por Lucas (só produção)", "queue.publish_timeout_ms: 30000 → 3000", "Motivo: \"liberar workers mais rápido\"", "Antes disso, nenhum erro em meses"],
+      "hora": "10:30",
+      "evento": "Config da fila alterada",
+      "apoia": ["h_fila"],
+      "refuta": ["h_cobertura"]
+    },
+    {
+      "id": "cobertura",
+      "tipo": "codigo",
+      "titulo": "Cobertura de testes",
+      "texto": ["Testes de integração cobrem só o caminho feliz", "Nenhum teste simula fila lenta", "Sem alerta para pedido pago e não gravado"],
+      "apoia": ["h_cobertura"]
+    },
+    {
+      "id": "db_saude",
+      "tipo": "metrica",
+      "titulo": "Saúde do banco",
+      "texto": ["Latência p95: 12ms", "Erros: 0", "Conexões em uso: 40%"],
+      "refuta": ["h_banco"]
+    },
+    {
+      "id": "payload_ok",
+      "tipo": "log",
+      "titulo": "Validação dos dados",
+      "texto": ["100% dos pedidos que falharam passaram na validação", "Payloads idênticos aos de pedidos bem-sucedidos"],
+      "refuta": ["h_dados"]
+    },
+    {
+      "id": "email_cascata",
+      "tipo": "email",
+      "titulo": "E-mail de boas-vindas",
+      "texto": ["5 clientes sem e-mail de boas-vindas", "São os MESMOS clientes do pedido sumido", "O envio é a etapa seguinte à gravação"],
+      "apoia": ["h_fila"]
+    }
+  ],
+  "hipoteses": [
+    {
+      "id": "h_codigo",
+      "texto": "Bug no código de criação de pedido",
+      "correta": false,
+      "feedback": "O mesmo código roda sem erro em staging, e o deploy das 10:28 não tocou o serviço de pedidos. Culpar o código aqui seria injusto com o time.",
+      "teste": { "resultado": "Você rodou o mesmo fluxo em staging: tudo passou em 1,2s. O código parece inocente.", "revela": "comparacao_execucoes" }
+    },
+    {
+      "id": "h_dados",
+      "texto": "Dados inválidos sendo enviados",
+      "correta": false,
+      "feedback": "Todos os pedidos que falharam passaram na validação. O problema afeta clientes e produtos diferentes, não um tipo de dado.",
+      "teste": { "resultado": "Você reprocessou os payloads no validador: todos válidos.", "revela": "payload_ok" }
+    },
+    {
+      "id": "h_banco",
+      "texto": "Problema no banco de dados",
+      "correta": false,
+      "feedback": "O banco estava saudável o tempo todo. O pedido nem chegava até ele: travava antes, na fila.",
+      "teste": { "resultado": "Você abriu o painel do banco: nenhuma anomalia.", "revela": "db_saude" }
+    },
+    {
+      "id": "h_fila",
+      "texto": "Timeout na fila após mudança de configuração em produção",
+      "correta": true,
+      "feedback": "Exato. O timeout de publicação caiu de 30s para 3s só em produção. Com carga, a fila demorava mais que isso, o pedido não era gravado e a retentativa nunca rodava.",
+      "teste": { "resultado": "Você comparou a configuração dos ambientes e encontrou uma mudança feita hoje.", "revela": "config_diff" }
+    },
+    {
+      "id": "h_cobertura",
+      "texto": "Falta de cobertura de teste para esse cenário",
+      "correta": false,
+      "feedback": "A falta de teste deixou o problema passar, mas não é a causa raiz. Ela entra na recomendação, não no diagnóstico.",
+      "teste": { "resultado": "Você revisou a suíte de testes: o cenário de fila lenta não é coberto.", "revela": "cobertura" }
+    }
+  ],
+  "devs": [
+    {
+      "id": "maria",
+      "nome": "Maria",
+      "cargo": "Backend Developer",
+      "tracos": ["Perfeccionista", "Focada em qualidade"],
+      "fala": "Revisei o serviço de pedidos: ninguém mexeu na gravação há duas semanas. Se o código é o mesmo, compare os ambientes.",
+      "revela": "comparacao_execucoes",
+      "confiavel": true
+    },
+    {
+      "id": "joao",
+      "nome": "João",
+      "cargo": "Desenvolvedor Fullstack",
+      "tracos": ["Rápido", "Quebra, mas conserta"],
+      "fala": "Meu deploy só mexeu no visual do checkout! Aposto que é o banco, sempre é o banco.",
+      "revela": "deploy_v134",
+      "confiavel": false
+    },
+    {
+      "id": "lucas",
+      "nome": "Lucas",
+      "cargo": "Engenheiro de Plataforma",
+      "tracos": ["Mexe em tudo", "Infra & config"],
+      "fala": "Hoje cedo reduzi um timeout da fila para liberar workers... mas foi só um ajuste fino, não deve ter relação.",
+      "revela": "config_diff",
+      "confiavel": true
+    }
+  ],
+  "caos": [
+    {
+      "id": "caos_carrinho",
+      "titulo": "Carrinho não atualiza quantidade",
+      "relatos": 2,
+      "resultado": "Bug conhecido do app mobile, aberto há 3 dias. Não tem relação com este caso."
+    },
+    {
+      "id": "caos_cupom",
+      "titulo": "Cupom não aplicado",
+      "relatos": 1,
+      "resultado": "O cupom expirou ontem. Não é bug."
+    },
+    {
+      "id": "caos_email",
+      "titulo": "E-mail de boas-vindas não enviado",
+      "relatos": 5,
+      "resultado": "Os 5 clientes são os mesmos do pedido sumido! Não é outro bug: é um sintoma.",
+      "revela": "email_cascata"
+    }
+  ],
+  "conexoes": [
+    { "pistas": ["config_diff", "log_producao"], "insight": "O log mostra timeout de 3000ms: exatamente o valor configurado às 10:30." },
+    { "pistas": ["metricas", "config_diff"], "insight": "Os erros disparam 10 minutos depois da mudança de configuração." },
+    { "pistas": ["deploy_v134", "comparacao_execucoes"], "insight": "O deploy não tocou o serviço de pedidos e o mesmo código funciona em staging. Não é o código." },
+    { "pistas": ["email_cascata", "log_producao"], "insight": "O e-mail é a etapa seguinte à gravação. Se a gravação falha, o e-mail nunca sai." },
+    { "pistas": ["emails_suporte", "diff_ambiente"], "insight": "Todas as reclamações começam depois das 10:30, quando a fila de produção ficou instável." },
+    { "pistas": ["alerta_fila", "config_diff"], "insight": "O alerta de atraso disparou um minuto depois da mudança, mas ninguém foi notificado." }
+  ],
+  "recomendacoes": [
+    {
+      "id": "r_completo",
+      "texto": "Reverter o timeout para 30s, reprocessar os pedidos pagos sem registro e criar teste de integração + alerta para pedido pago não gravado",
+      "qualidade": "melhor",
+      "feedback": "Resolve agora, recupera os clientes afetados e impede que se repita. Isso é pensar como QA sênior."
+    },
+    {
+      "id": "r_reverter",
+      "texto": "Reverter o timeout da fila e seguir em frente",
+      "qualidade": "parcial",
+      "feedback": "Para o sangramento, mas os clientes que já pagaram continuam sem pedido, e nada impede o erro de voltar."
+    },
+    {
+      "id": "r_reprocessar",
+      "texto": "Reprocessar manualmente os pedidos afetados",
+      "qualidade": "parcial",
+      "feedback": "Ajuda quem já foi afetado, mas novos pedidos continuam sumindo enquanto a configuração não for corrigida."
+    },
+    {
+      "id": "r_rollback",
+      "texto": "Fazer rollback do deploy v1.34.0",
+      "qualidade": "ruim",
+      "feedback": "O deploy não tem relação. O rollback custa trabalho, tira melhorias do ar e o bug continua."
+    },
+    {
+      "id": "r_banco",
+      "texto": "Escalar o banco de dados para aguentar a carga",
+      "qualidade": "ruim",
+      "feedback": "O banco estava saudável. Gasto de infraestrutura sem efeito no problema."
+    },
+    {
+      "id": "r_hotfix",
+      "texto": "Pedir ao João um hotfix urgente no código de pedidos",
+      "qualidade": "ruim",
+      "feedback": "Não há o que corrigir no código, e o time perde confiança em quem aponta o dedo sem evidência."
+    }
+  ],
+  "licao": "Quando o mesmo código funciona em um ambiente e falha em outro, olhe para o que é diferente: configuração, carga e infraestrutura. E todo incidente merece um teste e um alerta para não voltar."
+}

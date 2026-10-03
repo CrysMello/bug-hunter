@@ -1,0 +1,255 @@
+{
+  "id": 319,
+  "plataforma": "backend",
+  "titulo": "Funciona na minha máquina",
+  "subtitulo": "O relatório de vendas do dia está perdendo vendas, mas só em produção.",
+  "citacao": "O sistema diz que vendi R$ 48 mil ontem. Meu caixa fechou em quase R$ 62 mil. Cadê o resto?",
+  "autorCitacao": "Gerente da loja Centro, via chamado",
+  "impacto": "ALTO",
+  "inicio": "Hoje, 08:15",
+  "ambiente": "Produção",
+  "objetivo": "Descubra por que o relatório erra só em produção e recomende a melhor ação. \"Funciona na minha máquina\" é uma pista, não uma defesa.",
+  "tempoTotal": 8,
+  "ordemColeta": ["relatorio_comparado", "vendas_faltando", "tickets_lojas", "metricas_semana", "migracao"],
+  "pistas": [
+    {
+      "id": "relato_gerente",
+      "tipo": "relato",
+      "titulo": "Chamado da gerente",
+      "texto": ["Relatório de ontem: R$ 48.210", "Caixa físico: R$ 61.870", "\"Faltam umas 40 vendas\"", "Chamado: #INC-2291"],
+      "inicial": true
+    },
+    {
+      "id": "relatorio_comparado",
+      "tipo": "comparacao",
+      "titulo": "Relatório: local x produção",
+      "texto": ["Máquina do Bruno: R$ 61.870 ✔", "Produção: R$ 48.210 ✘", "Mesma data, mesmo banco, mesmo commit (a3f9c21)"],
+      "refuta": ["h_versao", "h_usuario"]
+    },
+    {
+      "id": "vendas_faltando",
+      "tipo": "log",
+      "titulo": "As vendas que sumiram",
+      "texto": ["43 vendas fora do relatório de ontem", "Todas feitas entre 21:00 e 23:59", "Aparecem no relatório de HOJE"],
+      "hora": "21:03",
+      "evento": "Primeira venda que muda de dia",
+      "apoia": ["h_fuso"],
+      "refuta": ["h_dados"]
+    },
+    {
+      "id": "tickets_lojas",
+      "tipo": "email",
+      "titulo": "Chamados de outras lojas",
+      "texto": ["Mesma queixa em 6 lojas", "Começou na terça-feira", "Lojas que fecham às 20h não reclamaram"],
+      "apoia": ["h_fuso"]
+    },
+    {
+      "id": "metricas_semana",
+      "tipo": "metrica",
+      "titulo": "Totais da semana",
+      "texto": ["Soma da semana: banco = caixas físicos", "Cada dia perde à noite e ganha de madrugada", "Nenhuma venda perdida no total"],
+      "apoia": ["h_fuso"],
+      "refuta": ["h_dados"]
+    },
+    {
+      "id": "migracao",
+      "tipo": "ambiente",
+      "titulo": "Mudança de infraestrutura",
+      "texto": ["Segunda-feira: servidores migrados de VM para containers", "Imagem base: python:3.12-slim", "Nenhuma mudança no código do relatório"]
+    },
+    {
+      "id": "env_diff",
+      "tipo": "config",
+      "titulo": "Ambiente: local x container",
+      "texto": ["Máquina do Bruno: TZ=America/Sao_Paulo", "Container: TZ=UTC (padrão da imagem)", "VM antiga: TZ=America/Sao_Paulo", "21:00 em São Paulo = 00:00 em UTC"],
+      "hora": "21:00",
+      "evento": "Meia-noite em UTC",
+      "apoia": ["h_fuso"]
+    },
+    {
+      "id": "codigo_relatorio",
+      "tipo": "codigo",
+      "titulo": "Código do relatório",
+      "texto": ["inicio = datetime.now().replace(hour=0, minute=0)", "fim = inicio + timedelta(days=1)", "# nenhum fuso horário informado"],
+      "apoia": ["h_fuso"]
+    },
+    {
+      "id": "teste_qa",
+      "tipo": "codigo",
+      "titulo": "Testes do relatório",
+      "texto": ["Teste manual feito às 14h, antes do deploy", "Massa de teste: vendas entre 10h e 18h", "Nenhuma venda perto da meia-noite"],
+      "apoia": ["h_fuso"]
+    },
+    {
+      "id": "banco_completo",
+      "tipo": "log",
+      "titulo": "Vendas no banco",
+      "texto": ["As 43 vendas estão gravadas", "Horários salvos em UTC, corretos", "Nenhum erro de gravação na semana"],
+      "refuta": ["h_dados"]
+    },
+    {
+      "id": "replica",
+      "tipo": "metrica",
+      "titulo": "Réplica do banco",
+      "texto": ["Atraso da réplica: 0,2s", "Relatório roda às 08:00, horas depois das vendas"],
+      "refuta": ["h_banco"]
+    },
+    {
+      "id": "hash_versao",
+      "tipo": "codigo",
+      "titulo": "Versões em execução",
+      "texto": ["Produção: commit a3f9c21", "Máquina do Bruno: commit a3f9c21", "Dependências idênticas (lockfile)"],
+      "refuta": ["h_versao"]
+    },
+    {
+      "id": "api_direta",
+      "tipo": "log",
+      "titulo": "Chamada direta na API",
+      "texto": ["GET /relatorio?data=ontem → R$ 48.210", "Sem tela, sem filtro: mesmo erro", "O filtro da gerente estava certo"],
+      "refuta": ["h_usuario"]
+    },
+    {
+      "id": "cupom_horario",
+      "tipo": "email",
+      "titulo": "Cupom com horário errado",
+      "texto": ["Venda feita às 23:14", "Horário impresso no cupom: 02:14", "Mesmo serviço do relatório"],
+      "hora": "23:14",
+      "evento": "Cupom sai com 02:14",
+      "apoia": ["h_fuso"]
+    }
+  ],
+  "hipoteses": [
+    {
+      "id": "h_dados",
+      "texto": "Vendas não estão sendo gravadas (perda de dados)",
+      "correta": false,
+      "feedback": "Nenhuma venda se perdeu: todas estão no banco e o total da semana bate. Elas só são contadas no dia errado.",
+      "teste": { "resultado": "Você procurou as 43 vendas no banco: todas estão lá.", "revela": "banco_completo" }
+    },
+    {
+      "id": "h_banco",
+      "texto": "Réplica do banco atrasada",
+      "correta": false,
+      "feedback": "A réplica está praticamente em tempo real, e o relatório roda horas depois das vendas.",
+      "teste": { "resultado": "Você mediu o atraso da réplica: insignificante.", "revela": "replica" }
+    },
+    {
+      "id": "h_versao",
+      "texto": "Produção está rodando outra versão do código",
+      "correta": false,
+      "feedback": "Mesmo commit e mesmas dependências. O código é idêntico; o que muda é onde ele roda.",
+      "teste": { "resultado": "Você comparou as versões: idênticas.", "revela": "hash_versao" }
+    },
+    {
+      "id": "h_fuso",
+      "texto": "O código usa o fuso horário da máquina, e o servidor novo está em UTC",
+      "correta": true,
+      "feedback": "Isso. O código calcula \"hoje\" pelo relógio da máquina. A VM antiga e o notebook do Bruno estão em São Paulo; o container novo, em UTC. Às 21h de São Paulo já é meia-noite em UTC, e as vendas da noite passam para o dia seguinte.",
+      "teste": { "resultado": "Você comparou as variáveis de ambiente da máquina do Bruno e do container.", "revela": "env_diff" }
+    },
+    {
+      "id": "h_usuario",
+      "texto": "A gerente está usando o filtro errado no relatório",
+      "correta": false,
+      "feedback": "A API devolve o mesmo valor errado sem tela nenhuma, e seis lojas reclamam da mesma coisa. Culpar quem reportou é o caminho mais fácil e o mais errado.",
+      "teste": { "resultado": "Você chamou a API diretamente com a data de ontem.", "revela": "api_direta" }
+    }
+  ],
+  "devs": [
+    {
+      "id": "bruno",
+      "nome": "Bruno",
+      "cargo": "Desenvolvedor Backend",
+      "tracos": ["Confiante", "Entrega rápido"],
+      "fala": "Funciona na minha máquina! Rodei agora e deu R$ 61.870 certinho. Olha o código, não tem nada de errado. Deve ser a réplica do banco.",
+      "revela": "codigo_relatorio",
+      "confiavel": false
+    },
+    {
+      "id": "paula",
+      "nome": "Paula",
+      "cargo": "Engenheira de Confiabilidade (SRE)",
+      "tracos": ["Cuidadosa", "Fez a migração"],
+      "fala": "A migração foi tranquila, só troquei a VM pelo container. Fuso horário? Não configurei nada... as imagens vêm em UTC por padrão. A VM antiga estava em São Paulo, acho.",
+      "revela": "env_diff",
+      "confiavel": true
+    },
+    {
+      "id": "diego",
+      "nome": "Diego",
+      "cargo": "QA Júnior",
+      "tracos": ["Esforçado", "Testa o caminho feliz"],
+      "fala": "Eu testei o relatório antes do deploy e bateu certinho! Testei de tarde, com as vendas da massa de teste.",
+      "revela": "teste_qa",
+      "confiavel": true
+    }
+  ],
+  "caos": [
+    {
+      "id": "caos_impressora",
+      "titulo": "Impressora fiscal travando",
+      "relatos": 4,
+      "resultado": "Falta de papel e um driver antigo em duas lojas. Sem relação com o relatório."
+    },
+    {
+      "id": "caos_cupom",
+      "titulo": "Cupom fiscal com horário adiantado",
+      "relatos": 3,
+      "resultado": "O cupom sai com 3 horas a mais. É o mesmo serviço, no mesmo container. Não é outro bug: é a mesma causa aparecendo em outro lugar.",
+      "revela": "cupom_horario"
+    },
+    {
+      "id": "caos_login",
+      "titulo": "Login lento no PDV",
+      "relatos": 2,
+      "resultado": "Wi-Fi instável em uma loja. Resolvido pela equipe local."
+    }
+  ],
+  "conexoes": [
+    { "pistas": ["vendas_faltando", "env_diff"], "insight": "21:00 em São Paulo é meia-noite em UTC: exatamente onde as vendas mudam de dia." },
+    { "pistas": ["tickets_lojas", "vendas_faltando"], "insight": "Lojas que fecham às 20h não vendem depois das 21h. Por isso elas não foram afetadas." },
+    { "pistas": ["migracao", "env_diff"], "insight": "A migração trocou uma VM em São Paulo por um container em UTC, sem mudar uma linha de código." },
+    { "pistas": ["codigo_relatorio", "env_diff"], "insight": "O código usa o relógio da máquina sem fuso explícito: o resultado depende de onde ele roda." },
+    { "pistas": ["cupom_horario", "env_diff"], "insight": "Três horas de diferença: exatamente o fuso entre São Paulo e UTC." },
+    { "pistas": ["relatorio_comparado", "teste_qa"], "insight": "Ninguém testou com vendas depois das 21h, por isso local e testes sempre batiam." }
+  ],
+  "recomendacoes": [
+    {
+      "id": "r_completo",
+      "texto": "Tornar o fuso explícito no código (America/Sao_Paulo nos limites do dia), corrigir os relatórios desde a migração e criar um teste com vendas perto da meia-noite rodando em UTC",
+      "qualidade": "melhor",
+      "feedback": "O código passa a dar o mesmo resultado em qualquer máquina, os relatórios errados da semana são corrigidos e o teste garante que isso não volta em nenhum ambiente."
+    },
+    {
+      "id": "r_tz_container",
+      "texto": "Configurar TZ=America/Sao_Paulo no container",
+      "qualidade": "parcial",
+      "feedback": "Funciona hoje, mas o código continua dependendo do ambiente sem dizer. O próximo ambiente (um CI, uma nova região, um job agendado) quebra de novo. E os relatórios da semana seguem errados."
+    },
+    {
+      "id": "r_reprocessar",
+      "texto": "Reprocessar manualmente os relatórios da semana",
+      "qualidade": "parcial",
+      "feedback": "Corrige o passado, mas o relatório de amanhã vai errar do mesmo jeito."
+    },
+    {
+      "id": "r_voltar_vm",
+      "texto": "Desfazer a migração e voltar para as VMs",
+      "qualidade": "ruim",
+      "feedback": "Desfaz semanas de trabalho para esconder o problema. O código continua frágil."
+    },
+    {
+      "id": "r_replica",
+      "texto": "Fazer o relatório ler do banco principal em vez da réplica",
+      "qualidade": "ruim",
+      "feedback": "A réplica não tem relação, e o banco principal passa a receber uma carga desnecessária."
+    },
+    {
+      "id": "r_fechar",
+      "texto": "Fechar o chamado: em desenvolvimento funciona",
+      "qualidade": "ruim",
+      "feedback": "Seis lojas continuam com relatório errado. \"Funciona na minha máquina\" é exatamente a frase que deveria abrir a investigação."
+    }
+  ],
+  "licao": "\"Funciona na minha máquina\" é uma pista: a pergunta certa é o que a minha máquina tem de diferente. Código que depende do ambiente sem dizer (fuso, idioma, versão) quebra no próximo ambiente."
+}

@@ -1,0 +1,266 @@
+{
+  "id": 324,
+  "plataforma": "web",
+  "titulo": "A notificação que nunca chega",
+  "subtitulo": "Clientes pedem o código de redefinição de senha e nada chega. O painel interno diz que tudo foi enviado.",
+  "citacao": "Pedi o código para trocar a senha cinco vezes. Não chega nada, nem no spam. Estou sem acesso à minha conta!",
+  "autorCitacao": "Cliente, via chat de atendimento",
+  "impacto": "ALTO",
+  "inicio": "Hoje, 10:52",
+  "ambiente": "Site · e-mails do sistema",
+  "objetivo": "Descubra por que os e-mails não chegam se o sistema diz que enviou, e recomende a melhor ação. Desconfie de painel 100% verde.",
+  "tempoTotal": 8,
+  "ordemColeta": ["log_notificacao", "chamados", "metricas_entrega", "campanha", "dns"],
+  "pistas": [
+    {
+      "id": "relato_cliente",
+      "tipo": "relato",
+      "titulo": "Conversa no chat",
+      "texto": ["5 pedidos de código de redefinição", "Nada na caixa de entrada nem no spam", "\"Ontem eu recebia normal\"", "Cliente: #U44812"],
+      "hora": "10:52",
+      "evento": "Primeiro chamado",
+      "inicial": true
+    },
+    {
+      "id": "log_notificacao",
+      "tipo": "log",
+      "titulo": "Log do serviço de notificações",
+      "texto": ["[10:52:03] reset_senha → usuário #U44812", "[10:52:03] status: ENVIADO ✔", "Fila vazia, processamento em 40ms"],
+      "refuta": ["h_fila"]
+    },
+    {
+      "id": "chamados",
+      "tipo": "email",
+      "titulo": "Chamados no atendimento",
+      "texto": ["312 chamados: \"o código não chega\"", "Nenhum antes das 10:47", "Gmail, Outlook e e-mails de empresa"],
+      "hora": "11:30",
+      "evento": "Pico de chamados",
+      "apoia": ["h_cota"],
+      "refuta": ["h_digitacao"]
+    },
+    {
+      "id": "metricas_entrega",
+      "tipo": "metrica",
+      "titulo": "Entrega de e-mails",
+      "texto": ["Aceitos pelo provedor até 10:47: 100%", "Aceitos depois de 10:47: 0%", "Painel interno: 100% \"enviados\" o dia todo"],
+      "hora": "10:47",
+      "evento": "Entrega cai a zero",
+      "apoia": ["h_cota"],
+      "refuta": ["h_dominio"]
+    },
+    {
+      "id": "campanha",
+      "tipo": "ambiente",
+      "titulo": "Newsletter de Black Friday",
+      "texto": ["400 mil e-mails disparados pelo marketing", "Início às 09:00", "Mesma conta do provedor e mesmo domínio dos e-mails do sistema"],
+      "hora": "09:00",
+      "evento": "Newsletter de 400 mil e-mails",
+      "apoia": ["h_cota"]
+    },
+    {
+      "id": "dns",
+      "tipo": "config",
+      "titulo": "Configuração do domínio",
+      "texto": ["SPF, DKIM e DMARC válidos", "Nenhuma alteração no DNS há 4 meses"],
+      "refuta": ["h_dominio"]
+    },
+    {
+      "id": "painel_provedor",
+      "tipo": "metrica",
+      "titulo": "Painel do provedor de e-mail",
+      "texto": ["Plano: 300 mil e-mails por dia", "Usados hoje: 300.000 de 300.000 às 10:47", "Desde então: 429 Too Many Requests", "A cota renova à meia-noite"],
+      "apoia": ["h_cota"]
+    },
+    {
+      "id": "codigo_envio",
+      "tipo": "codigo",
+      "titulo": "Código de envio",
+      "texto": ["try: provedor.enviar(email)", "except Exception as e: log.debug(e)", "status = \"ENVIADO\"  # sempre"],
+      "apoia": ["h_cota"]
+    },
+    {
+      "id": "contrato",
+      "tipo": "requisito",
+      "titulo": "Conta no provedor",
+      "texto": ["Uma conta só para marketing e para o sistema", "Plano contratado em 2023; a base cresceu 4 vezes", "Ninguém sabia do limite diário"],
+      "apoia": ["h_cota"]
+    },
+    {
+      "id": "alerta",
+      "tipo": "config",
+      "titulo": "Alerta de e-mails",
+      "texto": ["Dispara se a taxa de envio cair abaixo de 95%", "Fonte: o status interno (\"ENVIADO\")", "Nunca olha a resposta do provedor"],
+      "apoia": ["h_cota"]
+    },
+    {
+      "id": "teste_spam",
+      "tipo": "comparacao",
+      "titulo": "Teste com contas próprias",
+      "texto": ["Código pedido para 5 contas de teste", "Nada na caixa de entrada nem no spam", "O provedor nem aceitou as mensagens"],
+      "refuta": ["h_spam"]
+    },
+    {
+      "id": "teste_dominio",
+      "tipo": "comparacao",
+      "titulo": "Verificação do domínio",
+      "texto": ["Ferramenta de diagnóstico: tudo verde", "E-mails das 08:00 entregues com sucesso", "Mesmo domínio, mesma configuração"],
+      "refuta": ["h_dominio"]
+    },
+    {
+      "id": "fila_status",
+      "tipo": "metrica",
+      "titulo": "Fila de notificações",
+      "texto": ["0 mensagens pendentes", "Nenhum processador parado", "Tudo processado e marcado como enviado"],
+      "refuta": ["h_fila"]
+    },
+    {
+      "id": "emails_validos",
+      "tipo": "log",
+      "titulo": "Endereços dos clientes",
+      "texto": ["Os 312 endereços existem e são válidos", "Os mesmos endereços receberam e-mails ontem"],
+      "refuta": ["h_digitacao"]
+    },
+    {
+      "id": "pedidos_sem_email",
+      "tipo": "email",
+      "titulo": "Confirmações de pedido",
+      "texto": ["E-mails de pedido também param às 10:47", "Não é só a redefinição de senha", "Tudo que sai pela conta compartilhada parou"],
+      "apoia": ["h_cota"],
+      "refuta": ["h_spam"]
+    }
+  ],
+  "hipoteses": [
+    {
+      "id": "h_spam",
+      "texto": "Os e-mails estão caindo na caixa de spam",
+      "correta": false,
+      "feedback": "As mensagens nem chegam a ser aceitas pelo provedor, então não têm como cair no spam. Mandar o cliente olhar o spam seria perda de tempo para todos.",
+      "teste": { "resultado": "Você pediu o código para 5 contas de teste.", "revela": "teste_spam" }
+    },
+    {
+      "id": "h_dominio",
+      "texto": "A configuração do domínio (SPF/DKIM) quebrou",
+      "correta": false,
+      "feedback": "O domínio está correto e os e-mails da manhã foram entregues normalmente. Nada mudou no DNS.",
+      "teste": { "resultado": "Você rodou o diagnóstico do domínio.", "revela": "teste_dominio" }
+    },
+    {
+      "id": "h_cota",
+      "texto": "A newsletter esgotou a cota diária do provedor compartilhado, e o sistema esconde o erro",
+      "correta": true,
+      "feedback": "Isso. Marketing e sistema usam a mesma conta do provedor, com limite de 300 mil e-mails por dia. A newsletter de 400 mil consumiu tudo às 10:47. Desde então o provedor recusa as mensagens, mas o código engole o erro e marca \"enviado\", então nenhum painel e nenhum alerta percebem.",
+      "teste": { "resultado": "Você abriu o painel da conta no provedor de e-mail.", "revela": "painel_provedor" }
+    },
+    {
+      "id": "h_fila",
+      "texto": "A fila de notificações travou",
+      "correta": false,
+      "feedback": "A fila está vazia e rápida. O problema não é processar as mensagens, é o que acontece depois que elas saem.",
+      "teste": { "resultado": "Você inspecionou a fila de notificações.", "revela": "fila_status" }
+    },
+    {
+      "id": "h_digitacao",
+      "texto": "Os clientes estão digitando o e-mail errado",
+      "correta": false,
+      "feedback": "312 pessoas não erram o próprio e-mail ao mesmo tempo, e os mesmos endereços recebiam e-mails ontem. Culpar o cliente é o atalho mais caro.",
+      "teste": { "resultado": "Você conferiu os endereços dos clientes que reclamaram.", "revela": "emails_validos" }
+    }
+  ],
+  "devs": [
+    {
+      "id": "vitor",
+      "nome": "Vitor",
+      "cargo": "Desenvolvedor Backend",
+      "tracos": ["Prático", "Escreveu as notificações"],
+      "fala": "O serviço está ótimo, olha o painel: 100% enviados! Se não chega, é spam do lado do cliente.",
+      "revela": "codigo_envio",
+      "confiavel": false
+    },
+    {
+      "id": "larissa",
+      "nome": "Larissa",
+      "cargo": "Analista de Marketing",
+      "tracos": ["Comemora resultados", "Fora do time técnico"],
+      "fala": "A newsletter de Black Friday foi um sucesso! 400 mil e-mails pela mesma conta de sempre, que já está paga. Por quê?",
+      "revela": "contrato",
+      "confiavel": true
+    },
+    {
+      "id": "fabio",
+      "nome": "Fábio",
+      "cargo": "Engenheiro de Confiabilidade (SRE)",
+      "tracos": ["Confia nos alertas", "Sincero"],
+      "fala": "Nosso alerta está verde. Ele mede quantos e-mails o sistema marcou como enviados... Hum, pensando bem, ele nunca olha se o provedor aceitou.",
+      "revela": "alerta",
+      "confiavel": true
+    }
+  ],
+  "caos": [
+    {
+      "id": "caos_link",
+      "titulo": "Link quebrado na newsletter",
+      "relatos": 40,
+      "resultado": "Erro de digitação no link do cupom. O marketing já corrigiu. Barulhento, mas não explica os códigos."
+    },
+    {
+      "id": "caos_pedidos",
+      "titulo": "Confirmação de pedido também não chega",
+      "relatos": 27,
+      "resultado": "Parece outro problema, mas parou no mesmo minuto: 10:47. Tudo que sai pela conta compartilhada foi afetado.",
+      "revela": "pedidos_sem_email"
+    },
+    {
+      "id": "caos_sms",
+      "titulo": "SMS de entrega atrasando",
+      "relatos": 6,
+      "resultado": "Outro provedor, atraso normal da operadora. Sem relação com os e-mails."
+    }
+  ],
+  "conexoes": [
+    { "pistas": ["campanha", "painel_provedor"], "insight": "400 mil e-mails de newsletter numa cota de 300 mil por dia: o sistema ficou sem envio às 10:47." },
+    { "pistas": ["codigo_envio", "metricas_entrega"], "insight": "O provedor recusa, o código engole o erro e marca \"enviado\". Por isso o painel interno mostra 100%." },
+    { "pistas": ["alerta", "codigo_envio"], "insight": "O alerta mede um status que é sempre \"enviado\". Ele nunca poderia tocar." },
+    { "pistas": ["chamados", "metricas_entrega"], "insight": "Os chamados começam no exato minuto em que a entrega cai a zero." },
+    { "pistas": ["pedidos_sem_email", "painel_provedor"], "insight": "Não é só a senha: tudo que sai pela conta compartilhada parou junto." },
+    { "pistas": ["contrato", "campanha"], "insight": "Uma conta só para marketing e sistema: a newsletter gastou a cota dos e-mails essenciais." }
+  ],
+  "recomendacoes": [
+    {
+      "id": "r_completo",
+      "texto": "Ampliar a cota agora e reenviar os códigos, separar os e-mails do sistema dos de marketing (contas e limites próprios), parar de engolir o erro do provedor e alertar pela entrega, não pelo envio",
+      "qualidade": "melhor",
+      "feedback": "Devolve o acesso aos clientes hoje, impede que uma campanha volte a derrubar os e-mails essenciais e faz o sistema finalmente dizer a verdade quando algo falha."
+    },
+    {
+      "id": "r_aumentar_cota",
+      "texto": "Aumentar a cota do plano no provedor",
+      "qualidade": "parcial",
+      "feedback": "Resolve hoje, mas a próxima campanha maior repete o problema, e o código continua mentindo que enviou."
+    },
+    {
+      "id": "r_esperar",
+      "texto": "Reenviar tudo à meia-noite, quando a cota renovar",
+      "qualidade": "parcial",
+      "feedback": "Os e-mails acabam chegando, mas os clientes ficam 13 horas sem acesso às contas, e nada impede que aconteça de novo amanhã."
+    },
+    {
+      "id": "r_spam",
+      "texto": "Orientar os clientes a procurar na caixa de spam",
+      "qualidade": "ruim",
+      "feedback": "Os e-mails nunca foram aceitos pelo provedor. O cliente procura, não acha e fica mais irritado."
+    },
+    {
+      "id": "r_cancelar",
+      "texto": "Cancelar a newsletter",
+      "qualidade": "ruim",
+      "feedback": "Ela já foi disparada e a cota já acabou. Cancelar agora não devolve nenhum envio."
+    },
+    {
+      "id": "r_dns",
+      "texto": "Refazer a configuração de SPF/DKIM do domínio",
+      "qualidade": "ruim",
+      "feedback": "O domínio está correto. Mexer no DNS em meio a um incidente ainda pode criar um problema de verdade."
+    }
+  ],
+  "licao": "Um sistema que diz \"enviado\" sem saber se entregou está mentindo para você. Recursos compartilhados, como cotas e contas, deixam um time derrubar o outro sem perceber. Monitore o resultado que importa para o cliente, não o que é fácil medir."
+}

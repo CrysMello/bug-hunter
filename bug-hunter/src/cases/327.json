@@ -1,0 +1,262 @@
+{
+  "id": 327,
+  "plataforma": "web",
+  "titulo": "A paginação que só anda pelas setas",
+  "subtitulo": "Na lista de produtos, avançar pelas setas < > funciona. Clicar direto no número da página dá erro.",
+  "citacao": "Se eu vou pelas setinhas, funciona. Se clico direto no número 5, aparece \"Erro ao carregar\". Tenho 2 mil produtos, não dá para ir de seta em seta!",
+  "autorCitacao": "Lojista parceira, pelo chat do painel",
+  "impacto": "MÉDIO",
+  "inicio": "Hoje, 09:20",
+  "ambiente": "Painel do lojista (site)",
+  "objetivo": "Descubra por que dois botões que levam à mesma página se comportam diferente, e recomende a melhor ação.",
+  "tempoTotal": 8,
+  "ordemColeta": ["console_navegador", "chamados", "deploy_api", "metricas_erro", "front_versao"],
+  "pistas": [
+    {
+      "id": "relato_lojista",
+      "tipo": "relato",
+      "titulo": "Chat da lojista",
+      "texto": ["Setas < >: a lista avança normalmente", "Número da página: \"Erro ao carregar\"", "\"Até quinta funcionava\""],
+      "inicial": true
+    },
+    {
+      "id": "console_navegador",
+      "tipo": "log",
+      "titulo": "Console do navegador",
+      "texto": ["Clique no 5: GET /api/v2/produtos?page=5&size=20 → 400", "Resposta: \"parâmetro page não suportado; use cursor\"", "Clique na seta: GET /api/v2/produtos?cursor=eyJpZCI6… → 200"],
+      "apoia": ["h_contrato"],
+      "refuta": ["h_sessao"]
+    },
+    {
+      "id": "chamados",
+      "tipo": "email",
+      "titulo": "Chamados de lojistas",
+      "texto": ["47 lojistas reclamam desde quinta à noite", "Chrome, Firefox, Safari e celular", "Clicar no 1 funciona; do 2 em diante, erro"],
+      "refuta": ["h_navegador"]
+    },
+    {
+      "id": "deploy_api",
+      "tipo": "codigo",
+      "titulo": "Deploy da API de produtos",
+      "texto": ["Quinta, 18:00: API v2.3", "\"Paginação por cursor: mais rápida para listas grandes\"", "Parâmetros page e size removidos"],
+      "hora": "18:00",
+      "evento": "Deploy da API v2.3",
+      "apoia": ["h_contrato"]
+    },
+    {
+      "id": "metricas_erro",
+      "tipo": "metrica",
+      "titulo": "Erros 400 na API de produtos",
+      "texto": ["Até quinta 18:00: praticamente zero", "Depois: cerca de 3.100 por dia", "Todos com o parâmetro page"],
+      "hora": "18:05",
+      "evento": "Erros 400 disparam",
+      "apoia": ["h_contrato"]
+    },
+    {
+      "id": "front_versao",
+      "tipo": "codigo",
+      "titulo": "Versão do painel",
+      "texto": ["Último deploy do painel: 3 semanas atrás", "O componente de paginação não muda há meses"],
+      "refuta": ["h_front"]
+    },
+    {
+      "id": "contrato_api",
+      "tipo": "requisito",
+      "titulo": "Documentação da API v2.3",
+      "texto": ["\"Use next_cursor e prev_cursor para navegar\"", "Pular direto para a página N: não suportado", "Aviso para quem usa a API: nenhum"],
+      "apoia": ["h_contrato"]
+    },
+    {
+      "id": "pr_api",
+      "tipo": "codigo",
+      "titulo": "Pull request da mudança",
+      "texto": ["PR #881: \"troca paginação por página por cursor\"", "Aprovado por duas pessoas do backend", "Ninguém do front revisou"],
+      "apoia": ["h_contrato"]
+    },
+    {
+      "id": "codigo_paginacao",
+      "tipo": "codigo",
+      "titulo": "Código da paginação no painel",
+      "texto": ["Setas: buscar({ cursor: resposta.next_cursor })", "Números: buscar({ page: n, size: 20 })", "Página 1: buscar() sem parâmetros", "Dois caminhos para a mesma lista"],
+      "apoia": ["h_contrato"]
+    },
+    {
+      "id": "teste_e2e",
+      "tipo": "requisito",
+      "titulo": "Testes automáticos da lista",
+      "texto": ["Teste: clicar em \">\" e conferir a página 2 ✔", "Nenhum teste clica nos números", "Nenhum teste de contrato entre painel e API"],
+      "apoia": ["h_contrato"]
+    },
+    {
+      "id": "teste_componente",
+      "tipo": "comparacao",
+      "titulo": "Mesmo painel, APIs diferentes",
+      "texto": ["Painel + API v2.2 (homologação): números funcionam ✔", "Painel + API v2.3: números dão erro ✘", "O painel não mudou; a API mudou"],
+      "apoia": ["h_contrato"],
+      "refuta": ["h_front"]
+    },
+    {
+      "id": "teste_navegadores",
+      "tipo": "comparacao",
+      "titulo": "Teste em navegadores",
+      "texto": ["Chrome, Firefox, Safari e Edge", "Mesmo erro em todos"],
+      "refuta": ["h_navegador"]
+    },
+    {
+      "id": "sessao",
+      "tipo": "log",
+      "titulo": "Sessão da lojista",
+      "texto": ["Erro 400 (pedido inválido), não 401 (sem login)", "Sessão válida durante todo o teste"],
+      "refuta": ["h_sessao"]
+    },
+    {
+      "id": "mesma_pagina",
+      "tipo": "comparacao",
+      "titulo": "Página 5 por dois caminhos",
+      "texto": ["Pelas setas (4 cliques): carrega normal ✔", "Pelo número 5: erro ✘", "Mesmos produtos, mesmo conteúdo"],
+      "apoia": ["h_contrato"],
+      "refuta": ["h_dados"]
+    },
+    {
+      "id": "estoque_tambem",
+      "tipo": "email",
+      "titulo": "Relatório de estoque",
+      "texto": ["Escolher a página do relatório também dá erro", "Outra tela que chama a API com page=N", "Mesma mudança, outro consumidor quebrado"],
+      "apoia": ["h_contrato"]
+    }
+  ],
+  "hipoteses": [
+    {
+      "id": "h_front",
+      "texto": "Um bug novo no componente de paginação do painel",
+      "correta": false,
+      "feedback": "O painel não muda há semanas, e o mesmo componente funciona com a versão anterior da API. Quem mudou foi o outro lado.",
+      "teste": { "resultado": "Você ligou o mesmo painel nas duas versões da API.", "revela": "teste_componente" }
+    },
+    {
+      "id": "h_contrato",
+      "texto": "A API trocou a paginação por página por cursor, e os números ainda pedem no formato antigo",
+      "correta": true,
+      "feedback": "Isso. Para deixar listas grandes mais rápidas, a API passou a navegar por cursor (\"próximo\" e \"anterior\") e removeu o parâmetro page. As setas já usavam o cursor e continuaram funcionando. Os números montam page=N, que a API agora recusa. A página 1 funciona porque não manda parâmetro nenhum. Ninguém do painel revisou a mudança, e nenhum teste clicava nos números.",
+      "teste": { "resultado": "Você leu a documentação da versão nova da API.", "revela": "contrato_api" }
+    },
+    {
+      "id": "h_navegador",
+      "texto": "Problema num navegador específico",
+      "correta": false,
+      "feedback": "Acontece igual em todos os navegadores e no celular.",
+      "teste": { "resultado": "Você repetiu o clique em quatro navegadores.", "revela": "teste_navegadores" }
+    },
+    {
+      "id": "h_sessao",
+      "texto": "A sessão expira ao trocar de página",
+      "correta": false,
+      "feedback": "O erro é 400 (pedido inválido), não 401 (sem login), e a sessão continua válida. A API recusa o formato do pedido, não a pessoa.",
+      "teste": { "resultado": "Você acompanhou a sessão durante os cliques.", "revela": "sessao" }
+    },
+    {
+      "id": "h_dados",
+      "texto": "Algum produto com dado inválido quebra certas páginas",
+      "correta": false,
+      "feedback": "A mesma página 5 carrega normalmente pelas setas. Se houvesse um produto quebrado, ela falharia pelos dois caminhos.",
+      "teste": { "resultado": "Você abriu a página 5 pelas setas e pelo número.", "revela": "mesma_pagina" }
+    }
+  ],
+  "devs": [
+    {
+      "id": "leandro",
+      "nome": "Leandro",
+      "cargo": "Desenvolvedor Backend",
+      "tracos": ["Otimizou a API", "Orgulhoso do resultado"],
+      "fala": "A paginação por cursor deixou a lista dez vezes mais rápida para as lojas grandes! Removi page e size porque ninguém deveria usar mais. Deve ser algum bug no front.",
+      "revela": "pr_api",
+      "confiavel": false
+    },
+    {
+      "id": "camila",
+      "nome": "Camila",
+      "cargo": "Desenvolvedora Frontend",
+      "tracos": ["Mantém o painel", "Honesta"],
+      "fala": "As setas usam o next_cursor desde o ano passado, quando o cursor virou opção. Os números ainda montam page=N... eu não sabia que page tinha sido removido.",
+      "revela": "codigo_paginacao",
+      "confiavel": true
+    },
+    {
+      "id": "paulo",
+      "nome": "Paulo",
+      "cargo": "QA",
+      "tracos": ["Automatiza tudo", "Confia no verde"],
+      "fala": "Nosso teste automático de paginação passou na quinta! Ele clica em \"próxima\" e confere se chegou na página 2.",
+      "revela": "teste_e2e",
+      "confiavel": true
+    }
+  ],
+  "caos": [
+    {
+      "id": "caos_busca",
+      "titulo": "Busca por \"cafe\" não acha \"café\"",
+      "relatos": 5,
+      "resultado": "A busca diferencia acentos. Bug antigo e real, mas sem relação com a paginação."
+    },
+    {
+      "id": "caos_estoque",
+      "titulo": "Relatório de estoque dá erro ao escolher página",
+      "relatos": 9,
+      "resultado": "Parece outra tela com outro problema, mas chama a mesma API com page=N. Mesma causa, outro lugar.",
+      "revela": "estoque_tambem"
+    },
+    {
+      "id": "caos_safari",
+      "titulo": "Ícone do carrinho desalinhado no Safari",
+      "relatos": 3,
+      "resultado": "Ajuste de CSS pendente. Visual, sem relação."
+    }
+  ],
+  "conexoes": [
+    { "pistas": ["console_navegador", "deploy_api"], "insight": "O erro diz \"page não suportado\", e a API removeu page na quinta." },
+    { "pistas": ["codigo_paginacao", "console_navegador"], "insight": "As setas falam a língua nova (cursor); os números falam a antiga (page)." },
+    { "pistas": ["metricas_erro", "deploy_api"], "insight": "Os erros começam cinco minutos depois do deploy da API." },
+    { "pistas": ["teste_e2e", "codigo_paginacao"], "insight": "O teste só clica na seta: o caminho que quebrou nunca foi testado." },
+    { "pistas": ["pr_api", "contrato_api"], "insight": "A API mudou o combinado sem ninguém do painel revisar e sem avisar quem usa." },
+    { "pistas": ["estoque_tambem", "contrato_api"], "insight": "Não é só a lista de produtos: todo lugar que usava page quebrou." }
+  ],
+  "recomendacoes": [
+    {
+      "id": "r_completo",
+      "texto": "Devolver o suporte a page na API por enquanto, decidir com produto se a tela mantém os números, migrar todos os lugares que usam a API e criar testes de contrato entre painel e API",
+      "qualidade": "melhor",
+      "feedback": "Os lojistas voltam a navegar hoje, a otimização é mantida para quem já usa cursor, e a decisão de produto (pular para a página N ou não) é tomada por quem deve tomar. Testes de contrato impedem que uma mudança assim chegue em produção sem aviso."
+    },
+    {
+      "id": "r_so_setas",
+      "texto": "Tirar os números da paginação e deixar só as setas",
+      "qualidade": "parcial",
+      "feedback": "Resolve a lista de produtos, mas lojistas com 2 mil produtos perdem o atalho, o relatório de estoque continua quebrado e é uma decisão de produto tomada às pressas."
+    },
+    {
+      "id": "r_reverter_api",
+      "texto": "Reverter a API para a versão 2.2",
+      "qualidade": "parcial",
+      "feedback": "Volta tudo a funcionar, mas joga fora a melhoria de desempenho e não muda nada no processo que deixou isso acontecer."
+    },
+    {
+      "id": "r_gambiarra",
+      "texto": "Fazer o número 50 clicar na seta 49 vezes por baixo dos panos",
+      "qualidade": "ruim",
+      "feedback": "Funciona e é lento: 49 chamadas para abrir uma página. Esconde a quebra de contrato em vez de resolvê-la."
+    },
+    {
+      "id": "r_cache",
+      "texto": "Pedir aos lojistas que limpem o cache do navegador",
+      "qualidade": "ruim",
+      "feedback": "O erro vem da API, não do navegador. Os lojistas perdem tempo e nada muda."
+    },
+    {
+      "id": "r_orientar",
+      "texto": "Orientar os lojistas a usar só as setas",
+      "qualidade": "ruim",
+      "feedback": "Transfere o problema para quem usa o produto, e o relatório de estoque continua quebrado."
+    }
+  ],
+  "licao": "Duas formas de fazer a mesma coisa precisam ser testadas as duas. Quando uma API muda o combinado, todo mundo que a usa pode quebrar, até quem ninguém lembrou. Mudança de contrato se combina antes, não se descobre em produção."
+}

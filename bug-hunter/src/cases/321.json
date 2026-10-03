@@ -1,0 +1,265 @@
+{
+  "id": 321,
+  "plataforma": "app",
+  "titulo": "O e-mail que chegou em dobro",
+  "subtitulo": "Clientes do app recebem dois e-mails de confirmação, e alguns foram cobrados duas vezes.",
+  "citacao": "Recebi dois e-mails e fui cobrada duas vezes! Só toquei uma vez em Finalizar. Uma estrela.",
+  "autorCitacao": "Cliente, em avaliação na loja de apps",
+  "impacto": "ALTO",
+  "inicio": "Hoje, 18:42",
+  "ambiente": "App (Android e iOS) · v4.2",
+  "objetivo": "Descubra por que o app duplica e recomende a melhor ação. No celular, a rede falha o tempo todo, e o app precisa aguentar isso.",
+  "tempoTotal": 8,
+  "ordemColeta": ["emails_iguais", "avaliacoes_loja", "log_api", "release_app", "metricas_rede"],
+  "pistas": [
+    {
+      "id": "relato_cliente",
+      "tipo": "relato",
+      "titulo": "Avaliação na loja",
+      "texto": ["★☆☆☆☆ \"Cobrada duas vezes!\"", "\"Estava voltando do trabalho, no metrô\"", "Pedido de R$ 87,40 · cobrado 2x", "App v4.2 · Android"],
+      "hora": "18:42",
+      "evento": "Avaliação de 1 estrela",
+      "inicial": true
+    },
+    {
+      "id": "emails_iguais",
+      "tipo": "email",
+      "titulo": "Os dois e-mails",
+      "texto": ["E-mail 1: pedido #88120 · 18:41:07", "E-mail 2: pedido #88121 · 18:41:39", "Mesmos itens e valor, números diferentes"],
+      "refuta": ["h_email"]
+    },
+    {
+      "id": "avaliacoes_loja",
+      "tipo": "metrica",
+      "titulo": "Avaliações da semana",
+      "texto": ["Avaliações de 1 estrela: 38 (semana passada: 5)", "Mais citado: \"cobrado duas vezes\", \"metrô\", \"internet ruim\"", "Android e iOS"],
+      "apoia": ["h_retry"],
+      "refuta": ["h_android"]
+    },
+    {
+      "id": "log_api",
+      "tipo": "log",
+      "titulo": "Log da API de pedidos",
+      "texto": ["18:41:07 POST /pedidos → #88120 criado (servidor levou 9,8s)", "18:41:15 app: desistiu após 8s, resposta perdida", "18:41:39 POST /pedidos → #88121 criado", "Mesmo aparelho, mesmo carrinho"],
+      "hora": "18:41",
+      "evento": "Pedido criado duas vezes",
+      "apoia": ["h_retry"],
+      "refuta": ["h_duplo_toque"]
+    },
+    {
+      "id": "release_app",
+      "tipo": "codigo",
+      "titulo": "Versão 4.2 do app",
+      "texto": ["Publicada na segunda (Android e iOS)", "Nova biblioteca de rede", "Changelog: \"mais estável em conexões ruins\"", "72% dos usuários já atualizaram"],
+      "apoia": ["h_retry"]
+    },
+    {
+      "id": "metricas_rede",
+      "tipo": "metrica",
+      "titulo": "Duplicados por tipo de rede",
+      "texto": ["Wi-Fi: 0,3% dos pedidos duplicados", "4G/3G: 6,1% dos pedidos duplicados", "Pico entre 18h e 19h, hora de voltar para casa"],
+      "hora": "18:00",
+      "evento": "Começa o pico de duplicados",
+      "apoia": ["h_retry"]
+    },
+    {
+      "id": "config_retry",
+      "tipo": "config",
+      "titulo": "Configuração da biblioteca de rede",
+      "texto": ["timeout: 8s", "retryOnTimeout: true · maxRetries: 3", "Vale para TODAS as requisições, inclusive POST /pedidos"],
+      "apoia": ["h_retry"]
+    },
+    {
+      "id": "api_sem_idempotencia",
+      "tipo": "codigo",
+      "titulo": "Como a API cria pedidos",
+      "texto": ["POST /pedidos sempre cria um pedido novo", "Não existe chave de idempotência", "O servidor não sabe que é a mesma tentativa", "Horário de pico: até 10s de resposta"],
+      "apoia": ["h_retry"]
+    },
+    {
+      "id": "plano_teste",
+      "tipo": "requisito",
+      "titulo": "Plano de testes da v4.2",
+      "texto": ["100% dos testes no Wi-Fi do escritório", "Nenhum cenário de rede lenta ou queda", "Aprovado sem ressalvas"],
+      "apoia": ["h_retry"]
+    },
+    {
+      "id": "teste_rede_ruim",
+      "tipo": "comparacao",
+      "titulo": "Teste com rede simulada",
+      "texto": ["Wi-Fi bom: 0 pedidos duplicados em 20", "3G com 20% de perda: 1 toque → 2 pedidos em 7 de 20", "Só duplica quando a resposta demora ou se perde"],
+      "apoia": ["h_retry"],
+      "refuta": ["h_duplo_toque"]
+    },
+    {
+      "id": "logs_email",
+      "tipo": "log",
+      "titulo": "Logs do serviço de e-mail",
+      "texto": ["#88120 → 1 e-mail enviado", "#88121 → 1 e-mail enviado", "Nenhum envio repetido na semana"],
+      "refuta": ["h_email"]
+    },
+    {
+      "id": "teste_toque",
+      "tipo": "comparacao",
+      "titulo": "Teste do botão Finalizar",
+      "texto": ["O botão fica desativado logo após o toque", "Gravação de tela enviada pela cliente: 1 toque", "Pedidos com 32s de diferença, não milissegundos"],
+      "refuta": ["h_duplo_toque"]
+    },
+    {
+      "id": "logs_gateway",
+      "tipo": "log",
+      "titulo": "Logs do gateway de pagamento",
+      "texto": ["Cada pedido gerou 1 cobrança e 1 webhook", "As duas cobranças são de pedidos diferentes"],
+      "refuta": ["h_webhook"]
+    },
+    {
+      "id": "dispositivos",
+      "tipo": "metrica",
+      "titulo": "Duplicados por aparelho",
+      "texto": ["Android: 52% · iOS: 48%", "Mais de 60 modelos diferentes", "Nenhum aparelho concentra os casos"],
+      "refuta": ["h_android"]
+    },
+    {
+      "id": "push_dobro",
+      "tipo": "email",
+      "titulo": "Notificação em dobro",
+      "texto": ["Push \"Pedido confirmado\" chegou 2 vezes", "Também com números de pedido diferentes", "Tudo vem em dobro porque o pedido é que está em dobro"],
+      "apoia": ["h_retry"],
+      "refuta": ["h_email"]
+    }
+  ],
+  "hipoteses": [
+    {
+      "id": "h_email",
+      "texto": "O serviço de e-mail está mandando a mesma mensagem duas vezes",
+      "correta": false,
+      "feedback": "Os dois e-mails têm números de pedido diferentes, e o serviço enviou um por pedido. O e-mail só obedece: existem dois pedidos.",
+      "teste": { "resultado": "Você abriu os logs do serviço de e-mail.", "revela": "logs_email" }
+    },
+    {
+      "id": "h_duplo_toque",
+      "texto": "O usuário toca duas vezes no botão Finalizar",
+      "correta": false,
+      "feedback": "O botão já se desativa após o toque, e os pedidos chegam com 32 segundos de diferença. Um duplo toque chegaria em milissegundos. E a culpa não é de quem usa.",
+      "teste": { "resultado": "Você testou o botão e assistiu à gravação de tela da cliente.", "revela": "teste_toque" }
+    },
+    {
+      "id": "h_retry",
+      "texto": "O app reenvia o pedido quando a rede oscila, e a API não reconhece a repetição",
+      "correta": true,
+      "feedback": "Isso. A v4.2 trouxe uma biblioteca que repete sozinha qualquer requisição que demora mais de 8s. No pico, a API leva até 10s. O app desiste, a resposta se perde no metrô e o pedido é reenviado. Como a API não tem chave de idempotência, cria um pedido novo a cada tentativa.",
+      "teste": { "resultado": "Você simulou rede ruim e finalizou pedidos com um toque só.", "revela": "teste_rede_ruim" }
+    },
+    {
+      "id": "h_webhook",
+      "texto": "O gateway de pagamento está enviando a confirmação duas vezes",
+      "correta": false,
+      "feedback": "O gateway recebeu duas cobranças de dois pedidos diferentes e respondeu certo às duas. A duplicação acontece antes dele.",
+      "teste": { "resultado": "Você conferiu cobranças e webhooks no gateway.", "revela": "logs_gateway" }
+    },
+    {
+      "id": "h_android",
+      "texto": "Bug em um modelo específico de Android",
+      "correta": false,
+      "feedback": "Acontece quase igual no Android e no iOS, em dezenas de aparelhos. O que os casos têm em comum é a rede, não o aparelho.",
+      "teste": { "resultado": "Você separou os casos por sistema e modelo.", "revela": "dispositivos" }
+    }
+  ],
+  "devs": [
+    {
+      "id": "felipe",
+      "nome": "Felipe",
+      "cargo": "Desenvolvedor Mobile",
+      "tracos": ["Fã de bibliotecas novas", "Dono da v4.2"],
+      "fala": "A biblioteca nova é ótima: se a rede cai, ela tenta de novo sozinha. Antes o app dava erro, agora sempre funciona! Deve ser o serviço de e-mail.",
+      "revela": "config_retry",
+      "confiavel": false
+    },
+    {
+      "id": "renata",
+      "nome": "Renata",
+      "cargo": "Desenvolvedora Backend",
+      "tracos": ["Conhece a API", "Direta"],
+      "fala": "No pico a API demora uns 10s, por causa do cálculo de frete. Mas cada chamada cria o pedido certinho. Se chegam duas chamadas, são dois pedidos, né?",
+      "revela": "api_sem_idempotencia",
+      "confiavel": true
+    },
+    {
+      "id": "lia",
+      "nome": "Lia",
+      "cargo": "QA Mobile",
+      "tracos": ["Organizada", "Testa no escritório"],
+      "fala": "Testei a v4.2 inteira e não duplicou nenhuma vez. Tudo no Wi-Fi do escritório, que é ótimo.",
+      "revela": "plano_teste",
+      "confiavel": true
+    }
+  ],
+  "caos": [
+    {
+      "id": "caos_modo_escuro",
+      "titulo": "Texto ilegível no modo escuro",
+      "relatos": 6,
+      "resultado": "Uma cor fixa na tela de cupons. Bug real, mas sem relação com a duplicação."
+    },
+    {
+      "id": "caos_push",
+      "titulo": "Notificação chegando em dobro",
+      "relatos": 4,
+      "resultado": "Parece bug das notificações, mas cada push tem um número de pedido diferente. É o mesmo pedido duplicado gerando tudo em dobro.",
+      "revela": "push_dobro"
+    },
+    {
+      "id": "caos_tablet",
+      "titulo": "App fecha ao girar o tablet",
+      "relatos": 2,
+      "resultado": "Tela de perfil não trata a rotação. Sem relação com pedidos."
+    }
+  ],
+  "conexoes": [
+    { "pistas": ["log_api", "config_retry"], "insight": "O app desiste em 8s, a API responde em 9,8s e o retry manda de novo: um pedido para cada tentativa." },
+    { "pistas": ["config_retry", "api_sem_idempotencia"], "insight": "Repetir automaticamente sem idempotência é a receita da duplicação." },
+    { "pistas": ["emails_iguais", "log_api"], "insight": "Dois e-mails porque existem dois pedidos. O e-mail só obedece." },
+    { "pistas": ["metricas_rede", "teste_rede_ruim"], "insight": "Rede ruim faz a resposta demorar ou se perder, e é aí que o retry entra." },
+    { "pistas": ["release_app", "avaliacoes_loja"], "insight": "As avaliações de 1 estrela disparam na semana da v4.2." },
+    { "pistas": ["plano_teste", "teste_rede_ruim"], "insight": "Ninguém testou com rede ruim, que é a condição real de quem usa o app no metrô." }
+  ],
+  "recomendacoes": [
+    {
+      "id": "r_completo",
+      "texto": "Criar chave de idempotência no POST /pedidos (o app manda o mesmo ID em todas as tentativas), estornar as cobranças duplicadas e incluir testes com rede ruim no plano",
+      "qualidade": "melhor",
+      "feedback": "A API passa a reconhecer a repetição e cria um pedido só, sem depender de atualizar o app. Os clientes são reembolsados, e o plano de testes passa a cobrir como o app é usado de verdade."
+    },
+    {
+      "id": "r_desligar_retry",
+      "texto": "Desligar o retry automático do app",
+      "qualidade": "parcial",
+      "feedback": "Reduz as duplicações, mas exige nova versão na loja, e 72% dos usuários continuam com a v4.2 até atualizar. Sem retry, o cliente vê erro e toca de novo: a API continua criando um pedido por toque."
+    },
+    {
+      "id": "r_estornar",
+      "texto": "Estornar as cobranças duplicadas e avisar os clientes",
+      "qualidade": "parcial",
+      "feedback": "Necessário e justo, mas os próximos pedidos no metrô continuam duplicando."
+    },
+    {
+      "id": "r_dedup_email",
+      "texto": "Fazer o serviço de e-mail ignorar mensagens repetidas",
+      "qualidade": "ruim",
+      "feedback": "Esconde o sintoma mais visível e mantém a cobrança dupla. O cliente só descobre na fatura."
+    },
+    {
+      "id": "r_bloquear_botao",
+      "texto": "Bloquear o botão Finalizar por 30 segundos",
+      "qualidade": "ruim",
+      "feedback": "O botão já é bloqueado. Quem repete o pedido é a biblioteca de rede, não o dedo do cliente."
+    },
+    {
+      "id": "r_rollback",
+      "texto": "Voltar o app para a versão 4.1",
+      "qualidade": "ruim",
+      "feedback": "App não tem rollback como site: quem já atualizou continua na v4.2. Publicar a \"4.1\" de novo leva dias de revisão na loja e não toca na causa."
+    }
+  ],
+  "licao": "No celular, a rede falha o tempo todo: no metrô, no elevador, na troca de antena. Toda ação que pode ser repetida precisa ser segura para repetir (idempotente). E app se testa como o cliente usa, não só no Wi-Fi do escritório."
+}

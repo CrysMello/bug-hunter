@@ -1,0 +1,261 @@
+{
+  "id": 328,
+  "plataforma": "web",
+  "titulo": "O centavo que não fecha",
+  "subtitulo": "O carrinho mostra um total, e o cartão é cobrado com um centavo a menos. Só em alguns pedidos.",
+  "citacao": "No carrinho estava R$ 80,10. Na fatura do cartão veio R$ 80,09. Achei estranho... isso é golpe?",
+  "autorCitacao": "Cliente, pelo chat de atendimento",
+  "impacto": "MÉDIO",
+  "inicio": "Hoje, 15:10",
+  "ambiente": "Site · pagamentos",
+  "objetivo": "Descubra para onde vai o centavo e recomende a melhor ação. Um centavo parece pouco, mas é um sintoma.",
+  "tempoTotal": 8,
+  "ordemColeta": ["conciliacao", "log_pagamento", "exemplos", "perfil_pedidos", "deploy"],
+  "pistas": [
+    {
+      "id": "relato_cliente",
+      "tipo": "relato",
+      "titulo": "Pergunta no chat",
+      "texto": ["Carrinho: R$ 80,10", "Fatura do cartão: R$ 80,09", "\"Isso é golpe?\"", "Pedido #51207"],
+      "hora": "15:10",
+      "evento": "Cliente pergunta no chat",
+      "inicial": true
+    },
+    {
+      "id": "conciliacao",
+      "tipo": "metrica",
+      "titulo": "Conciliação de setembro",
+      "texto": ["2.874 pedidos com diferença (cerca de 6%)", "Sempre R$ 0,01 a menos cobrado, nunca a mais", "Diferença total no mês: R$ 28,74"],
+      "apoia": ["h_float"],
+      "refuta": ["h_fraude"]
+    },
+    {
+      "id": "log_pagamento",
+      "tipo": "log",
+      "titulo": "Log do pagamento #51207",
+      "texto": ["Total do pedido: R$ 80,10", "Enviado ao gateway: amount=8009 (centavos)", "Cobrado pelo gateway: R$ 80,09"],
+      "hora": "14:32",
+      "evento": "Pedido #51207 cobrado",
+      "apoia": ["h_float"],
+      "refuta": ["h_gateway"]
+    },
+    {
+      "id": "exemplos",
+      "tipo": "comparacao",
+      "titulo": "Totais com e sem diferença",
+      "texto": ["Erram: R$ 19,99 · R$ 80,10 · R$ 4,35 · R$ 1,15", "Acertam: R$ 89,70 · R$ 116,85 · R$ 50,00", "O mesmo total erra sempre do mesmo jeito"],
+      "apoia": ["h_float"]
+    },
+    {
+      "id": "perfil_pedidos",
+      "tipo": "metrica",
+      "titulo": "Perfil dos pedidos afetados",
+      "texto": ["Com cupom: 41% · sem cupom: 59%", "Com frete grátis: 38%", "Mesma proporção dos pedidos em geral"],
+      "refuta": ["h_cupom", "h_frete"]
+    },
+    {
+      "id": "deploy",
+      "tipo": "codigo",
+      "titulo": "Integração com o gateway",
+      "texto": ["12 de agosto: nova integração de pagamento", "A API nova recebe o valor em centavos (inteiro)", "A antiga recebia em reais, como texto"],
+      "apoia": ["h_float"]
+    },
+    {
+      "id": "codigo_centavos",
+      "tipo": "codigo",
+      "titulo": "Código da conversão",
+      "texto": ["total = 80.10   # número decimal do tipo float", "centavos = int(total * 100)", "# int() corta as casas decimais, não arredonda"],
+      "apoia": ["h_float"]
+    },
+    {
+      "id": "teste_conversao",
+      "tipo": "comparacao",
+      "titulo": "A conta no computador",
+      "texto": ["80.10 × 100 = 8009,999999999999", "int() corta: 8009 · round() daria: 8010", "Testados todos os valores de R$ 0,01 a R$ 200,00: 5,7% erram"],
+      "apoia": ["h_float"]
+    },
+    {
+      "id": "historico_conciliacao",
+      "tipo": "metrica",
+      "titulo": "Histórico da conciliação",
+      "texto": ["Até julho: diferença zero todo mês", "Agosto: 1.902 pedidos com diferença", "Setembro: 2.874"],
+      "apoia": ["h_float"]
+    },
+    {
+      "id": "plano_teste",
+      "tipo": "requisito",
+      "titulo": "Testes da integração",
+      "texto": ["Valores testados: R$ 10,00 · R$ 50,00 · R$ 100,00", "Todos redondos", "Nenhum valor com centavos quebrados"],
+      "apoia": ["h_float"]
+    },
+    {
+      "id": "extrato_gateway",
+      "tipo": "log",
+      "titulo": "Extrato do gateway",
+      "texto": ["Recebido: 8009 centavos", "Cobrado: R$ 80,09", "O gateway cobra exatamente o que recebe"],
+      "refuta": ["h_gateway"]
+    },
+    {
+      "id": "teste_sem_cupom",
+      "tipo": "comparacao",
+      "titulo": "Carrinho sem cupom",
+      "texto": ["Produto de R$ 19,99, sem cupom", "Cobrado: R$ 19,98", "Sem desconto nenhum, o centavo some igual"],
+      "refuta": ["h_cupom"]
+    },
+    {
+      "id": "teste_frete",
+      "tipo": "comparacao",
+      "titulo": "Com e sem frete",
+      "texto": ["Total de R$ 80,10 com frete grátis: cobra R$ 80,09", "Total de R$ 80,10 com frete pago: cobra R$ 80,09", "O que importa é o total, não o frete"],
+      "refuta": ["h_frete"]
+    },
+    {
+      "id": "auditoria",
+      "tipo": "log",
+      "titulo": "Auditoria dos pagamentos",
+      "texto": ["Nenhuma transferência para contas desconhecidas", "O centavo fica com o cliente (cobrado a menos)", "Nenhum acesso suspeito ao sistema"],
+      "refuta": ["h_fraude"]
+    },
+    {
+      "id": "nota_fiscal",
+      "tipo": "email",
+      "titulo": "Notas fiscais",
+      "texto": ["A nota sai com o total certo: R$ 80,10", "O pagamento sai com R$ 80,09", "Contador alerta: nota e pagamento precisam bater"],
+      "apoia": ["h_float"]
+    }
+  ],
+  "hipoteses": [
+    {
+      "id": "h_gateway",
+      "texto": "O gateway de pagamento está arredondando errado",
+      "correta": false,
+      "feedback": "O gateway cobrou exatamente o que recebeu: 8009 centavos. O centavo já tinha sumido antes, no nosso código.",
+      "teste": { "resultado": "Você comparou o que enviamos com o extrato do gateway.", "revela": "extrato_gateway" }
+    },
+    {
+      "id": "h_cupom",
+      "texto": "O cupom de desconto calcula o valor errado",
+      "correta": false,
+      "feedback": "Acontece também sem cupom nenhum, com um produto de R$ 19,99.",
+      "teste": { "resultado": "Você comprou um produto sem cupom.", "revela": "teste_sem_cupom" }
+    },
+    {
+      "id": "h_float",
+      "texto": "A conversão do total para centavos usa um número decimal impreciso e corta em vez de arredondar",
+      "correta": true,
+      "feedback": "Isso. O computador guarda 80,10 como 80,0999999…, porque o tipo float não representa a maioria dos centavos com exatidão. Multiplicando por 100 dá 8009,9999…, e o int() simplesmente corta o que vem depois da vírgula: 8009. Cerca de 6% dos totais caem nessa armadilha. Começou em agosto, quando a integração nova passou a exigir o valor em centavos.",
+      "teste": { "resultado": "Você refez a conversão no computador, valor por valor.", "revela": "teste_conversao" }
+    },
+    {
+      "id": "h_frete",
+      "texto": "O frete é recalculado na hora do pagamento",
+      "correta": false,
+      "feedback": "Com frete grátis ou pago, o mesmo total perde o mesmo centavo. O frete não entra nessa conta.",
+      "teste": { "resultado": "Você testou o mesmo total com e sem frete.", "revela": "teste_frete" }
+    },
+    {
+      "id": "h_fraude",
+      "texto": "Alguém está desviando os centavos (fraude)",
+      "correta": false,
+      "feedback": "Não há para onde o dinheiro ir: o cliente é que paga a menos. E a diferença é sempre a mesma para o mesmo total, o que é comportamento de máquina, não de golpista.",
+      "teste": { "resultado": "Você pediu uma auditoria dos pagamentos.", "revela": "auditoria" }
+    }
+  ],
+  "devs": [
+    {
+      "id": "henrique",
+      "nome": "Henrique",
+      "cargo": "Desenvolvedor Backend",
+      "tracos": ["Fez a integração nova", "Seguro de si"],
+      "fala": "A integração está certinha: o gateway pede centavos, eu multiplico por 100. Matemática básica! Deve ser o gateway arredondando.",
+      "revela": "codigo_centavos",
+      "confiavel": false
+    },
+    {
+      "id": "patricia",
+      "nome": "Patrícia",
+      "cargo": "Analista Financeira",
+      "tracos": ["Confere centavo por centavo", "Desconfiada"],
+      "fala": "Achei porque bato tudo centavo por centavo. R$ 28 no mês é pouco, mas até julho fechava certinho. E se um dia for para o outro lado?",
+      "revela": "historico_conciliacao",
+      "confiavel": true
+    },
+    {
+      "id": "yuri",
+      "nome": "Yuri",
+      "cargo": "QA",
+      "tracos": ["Rápido", "Gosta de números redondos"],
+      "fala": "Testei a integração com R$ 10, R$ 50 e R$ 100. Todos cobrados certinho!",
+      "revela": "plano_teste",
+      "confiavel": true
+    }
+  ],
+  "caos": [
+    {
+      "id": "caos_duplo",
+      "titulo": "Cliente diz que foi cobrado duas vezes",
+      "relatos": 3,
+      "resultado": "Era a pré-autorização do cartão, que some sozinha em até 3 dias. Normal."
+    },
+    {
+      "id": "caos_nota",
+      "titulo": "Nota fiscal diferente do pagamento",
+      "relatos": 12,
+      "resultado": "Parece um problema fiscal separado, mas é o mesmo centavo: a nota usa o total certo e o pagamento usa o valor cortado.",
+      "revela": "nota_fiscal"
+    },
+    {
+      "id": "caos_99",
+      "titulo": "Discussão sobre preços terminados em ,99",
+      "relatos": 2,
+      "resultado": "Debate de marketing sobre estratégia de preço. Não é bug."
+    }
+  ],
+  "conexoes": [
+    { "pistas": ["codigo_centavos", "teste_conversao"], "insight": "Multiplicar o float por 100 dá 8009,9999…, e o int() joga o resto fora." },
+    { "pistas": ["log_pagamento", "extrato_gateway"], "insight": "O gateway cobrou o que recebeu: o centavo sumiu antes, no nosso código." },
+    { "pistas": ["historico_conciliacao", "deploy"], "insight": "Diferença zero até julho; a integração em centavos chegou em agosto." },
+    { "pistas": ["plano_teste", "teste_conversao"], "insight": "Valores redondos nunca erram. O teste escolheu justamente os valores que escondem o bug." },
+    { "pistas": ["exemplos", "teste_conversao"], "insight": "R$ 89,70 acerta e R$ 80,10 erra: depende de como cada número é guardado no computador." },
+    { "pistas": ["nota_fiscal", "log_pagamento"], "insight": "A nota usa o total certo e o pagamento o cortado: um centavo que vira problema fiscal." }
+  ],
+  "recomendacoes": [
+    {
+      "id": "r_completo",
+      "texto": "Calcular e guardar dinheiro em centavos inteiros (ou tipo decimal), converter com arredondamento explícito, testar valores quebrados como R$ 19,99 e acertar as notas dos pedidos afetados",
+      "qualidade": "melhor",
+      "feedback": "Elimina a causa em todo o sistema, não só nessa linha. Os testes passam a cobrir os valores que de fato aparecem nos carrinhos, e nota e pagamento voltam a bater."
+    },
+    {
+      "id": "r_round",
+      "texto": "Trocar int() por round() na conversão",
+      "qualidade": "parcial",
+      "feedback": "Corrige esse ponto, mas o dinheiro continua em float no resto do sistema. Somas de vários itens e descontos podem errar em outros lugares."
+    },
+    {
+      "id": "r_notas",
+      "texto": "Corrigir só as notas fiscais dos pedidos afetados",
+      "qualidade": "parcial",
+      "feedback": "Resolve a parte fiscal do passado, mas cerca de 6% dos pedidos novos continuam saindo errados todo dia."
+    },
+    {
+      "id": "r_somar",
+      "texto": "Somar R$ 0,01 em todo pagamento para compensar",
+      "qualidade": "ruim",
+      "feedback": "Os 94% de pedidos que estavam certos passam a cobrar um centavo a mais. Agora o cliente é que paga pelo bug."
+    },
+    {
+      "id": "r_ajuste",
+      "texto": "Lançar a diferença todo mês como ajuste contábil",
+      "qualidade": "ruim",
+      "feedback": "Esconde o sintoma na contabilidade, e o bug segue crescendo junto com as vendas."
+    },
+    {
+      "id": "r_gateway",
+      "texto": "Abrir chamado com o gateway de pagamento",
+      "qualidade": "ruim",
+      "feedback": "O gateway cobra exatamente o que recebe. O chamado vai voltar com essa resposta, dias depois."
+    }
+  ],
+  "licao": "Dinheiro não se guarda em número decimal aproximado (float): use centavos inteiros ou um tipo decimal. Converter cortando em vez de arredondar perde centavos em silêncio. E teste com valores quebrados como R$ 19,99, não só com R$ 10,00."
+}

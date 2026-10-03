@@ -1,0 +1,265 @@
+{
+  "id": 318,
+  "plataforma": "web",
+  "titulo": "O desconto fantasma",
+  "subtitulo": "O cupom de primeira compra aparece no carrinho e some na hora de pagar.",
+  "citacao": "No carrinho tinha 10% de desconto. Na hora de pagar, sumiu. Isso é propaganda enganosa!",
+  "impacto": "ALTO",
+  "inicio": "Hoje, 09:42",
+  "ambiente": "Produção (site e app)",
+  "objetivo": "Descubra por que o desconto some e recomende a melhor ação. Às vezes todo mundo fez o código certo para a pergunta errada.",
+  "tempoTotal": 8,
+  "ordemColeta": ["log_checkout", "emails_suporte", "metricas", "deploy_campanha", "cdn", "perfil_clientes"],
+  "pistas": [
+    {
+      "id": "relato_cliente",
+      "tipo": "relato",
+      "titulo": "Relato da cliente",
+      "texto": ["Carrinho: R$ 199,90 → R$ 179,91 (PRIMEIRA10)", "Pagamento: voltou para R$ 199,90", "\"Criei minha conta semana passada!\"", "Cliente: #C30117"],
+      "hora": "09:42",
+      "evento": "Primeiro relato",
+      "inicial": true
+    },
+    {
+      "id": "log_checkout",
+      "tipo": "log",
+      "titulo": "Log do checkout",
+      "texto": ["[09:41:10] Carrinho: PRIMEIRA10 elegível (regra: conta < 30 dias)", "[09:41:55] Checkout: PRIMEIRA10 recusado (regra: sem pedidos anteriores)", "[09:41:55] #C30117 tem 1 pedido (status: cancelado)", "[09:41:56] Enviado ao gateway: R$ 199,90"],
+      "hora": "09:41",
+      "evento": "Cupom recusado no checkout",
+      "apoia": ["h_requisito"],
+      "refuta": ["h_gateway", "h_calculo"]
+    },
+    {
+      "id": "emails_suporte",
+      "tipo": "email",
+      "titulo": "E-mails do suporte",
+      "texto": ["47 reclamações desde as 09:00", "Site, Android e iOS", "Duas ameaçam abrir reclamação no Procon"],
+      "refuta": ["h_cache"]
+    },
+    {
+      "id": "metricas",
+      "tipo": "metrica",
+      "titulo": "Métricas do funil",
+      "texto": ["Abandono no pagamento: 18% → 41%", "PRIMEIRA10 exibido no carrinho: 3.200 vezes", "PRIMEIRA10 aceito no pagamento: 1.950 vezes"],
+      "hora": "10:30",
+      "evento": "Abandono dispara",
+      "apoia": ["h_requisito"]
+    },
+    {
+      "id": "deploy_campanha",
+      "tipo": "codigo",
+      "titulo": "Deploy v2.8.0",
+      "texto": ["09:00 · campanha PRIMEIRA10", "Front: CartDiscount.tsx (Ana)", "Back: coupon_rules.py (Rafael)", "Testes: 100% passando nos dois"],
+      "hora": "09:00",
+      "evento": "Lançamento da campanha"
+    },
+    {
+      "id": "cdn",
+      "tipo": "ambiente",
+      "titulo": "Cache e CDN",
+      "texto": ["Cache do CDN limpo às 08:55", "Preços e cupons vêm da API, sem cache", "O app não usa o CDN do site"],
+      "refuta": ["h_cache"]
+    },
+    {
+      "id": "perfil_clientes",
+      "tipo": "metrica",
+      "titulo": "Quem foi afetado",
+      "texto": ["47 de 47 têm conta criada há menos de 30 dias", "47 de 47 já tinham algum pedido anterior", "41 desses pedidos foram cancelados"],
+      "apoia": ["h_requisito"],
+      "refuta": ["h_fraude"]
+    },
+    {
+      "id": "historia_usuario",
+      "tipo": "requisito",
+      "titulo": "História de usuário #482",
+      "texto": ["\"Como novo cliente, quero 10% de desconto na minha primeira compra.\"", "Critérios de aceite: (vazio)", "Comentário da Ana: \"novo cliente = conta com menos de 30 dias?\"", "Sem resposta"],
+      "apoia": ["h_requisito"]
+    },
+    {
+      "id": "teste_front",
+      "tipo": "codigo",
+      "titulo": "Testes do front",
+      "texto": ["✔ conta criada há 5 dias → mostra desconto", "✔ conta criada há 60 dias → não mostra", "Nenhum teste olha pedidos anteriores"],
+      "apoia": ["h_requisito"],
+      "refuta": ["h_calculo"]
+    },
+    {
+      "id": "teste_back",
+      "tipo": "codigo",
+      "titulo": "Testes do back",
+      "texto": ["✔ cliente sem pedidos → aplica desconto", "✔ cliente com 1 pedido → recusa", "Pedido cancelado conta como pedido"],
+      "apoia": ["h_requisito"]
+    },
+    {
+      "id": "teste_anonimo",
+      "tipo": "comparacao",
+      "titulo": "Teste sem cache",
+      "texto": ["Aba anônima: o desconto some igual", "App recém-instalado: o desconto some igual", "Conta nova sem pedidos: funciona ✔"],
+      "apoia": ["h_requisito"],
+      "refuta": ["h_cache"]
+    },
+    {
+      "id": "calculo_ok",
+      "tipo": "log",
+      "titulo": "Conferência do cálculo",
+      "texto": ["30 pedidos recalculados à mão", "Quando o desconto é aplicado, o valor está certo", "O problema é o desconto ser removido, não o valor"],
+      "refuta": ["h_calculo"]
+    },
+    {
+      "id": "gateway_ok",
+      "tipo": "log",
+      "titulo": "Relatório do gateway",
+      "texto": ["Valor recebido = valor enviado em 100% das transações", "O gateway já recebe R$ 199,90"],
+      "refuta": ["h_gateway"]
+    },
+    {
+      "id": "uso_cupom",
+      "tipo": "metrica",
+      "titulo": "Uso do cupom",
+      "texto": ["Cada cliente tentou o cupom 1 ou 2 vezes", "Sem contas criadas em massa", "Nenhum padrão de abuso"],
+      "refuta": ["h_fraude"]
+    },
+    {
+      "id": "cliente_antigo",
+      "tipo": "email",
+      "titulo": "Clientes antigos pedindo o cupom",
+      "texto": ["6 clientes com conta de 2023, só com pedidos cancelados", "\"Eu nunca comprei nada, então é minha primeira compra!\"", "Mesma dúvida: pedido cancelado conta como compra?"],
+      "apoia": ["h_requisito"]
+    }
+  ],
+  "hipoteses": [
+    {
+      "id": "h_cache",
+      "texto": "Cache desatualizado mostrando um preço antigo",
+      "correta": false,
+      "feedback": "O cache foi limpo antes da campanha, os preços vêm da API e o problema acontece também no app, que nem usa o CDN.",
+      "teste": { "resultado": "Você repetiu a compra sem nenhum cache: o desconto some do mesmo jeito.", "revela": "teste_anonimo" }
+    },
+    {
+      "id": "h_calculo",
+      "texto": "Erro de arredondamento no cálculo do desconto",
+      "correta": false,
+      "feedback": "O valor do desconto está sempre certo. O problema não é quanto se desconta, é o desconto ser removido.",
+      "teste": { "resultado": "Você refez as contas de 30 pedidos: nenhuma diferença de valor.", "revela": "calculo_ok" }
+    },
+    {
+      "id": "h_gateway",
+      "texto": "O gateway de pagamento está removendo o desconto",
+      "correta": false,
+      "feedback": "O gateway cobra exatamente o que recebe. O desconto já foi retirado antes, no nosso checkout.",
+      "teste": { "resultado": "Você comparou o enviado e o cobrado: são iguais.", "revela": "gateway_ok" }
+    },
+    {
+      "id": "h_requisito",
+      "texto": "Front e back implementaram regras diferentes para \"primeira compra\" (requisito ambíguo)",
+      "correta": true,
+      "feedback": "Isso. A história dizia \"primeira compra\" sem critério de aceite. A Ana entendeu \"conta nova\", o Rafael entendeu \"nenhum pedido\", e a PO pensava em \"nenhuma compra paga\". Os três códigos estão certos para a sua interpretação, e o sistema como um todo está errado.",
+      "teste": { "resultado": "Você foi atrás da origem da regra e abriu a história de usuário.", "revela": "historia_usuario" }
+    },
+    {
+      "id": "h_fraude",
+      "texto": "Clientes tentando abusar do cupom",
+      "correta": false,
+      "feedback": "Os dados não mostram abuso. Tratar clientes legítimos como fraudadores ainda pioraria a experiência deles.",
+      "teste": { "resultado": "Você analisou o padrão de uso do cupom: comportamento normal.", "revela": "uso_cupom" }
+    }
+  ],
+  "devs": [
+    {
+      "id": "ana",
+      "nome": "Ana",
+      "cargo": "Desenvolvedora Frontend",
+      "tracos": ["Detalhista", "Segue a especificação"],
+      "fala": "Fiz exatamente o que a história pede: novo cliente é quem criou conta nos últimos 30 dias. Até perguntei na história, ninguém respondeu. Meus testes passam.",
+      "revela": "teste_front",
+      "confiavel": false
+    },
+    {
+      "id": "rafael",
+      "nome": "Rafael",
+      "cargo": "Desenvolvedor Backend",
+      "tracos": ["Experiente", "Defende o back"],
+      "fala": "No back a regra é óbvia: primeira compra é cliente sem nenhum pedido. Se o front mostra outra coisa, o problema é do front.",
+      "revela": "teste_back",
+      "confiavel": false
+    },
+    {
+      "id": "carla",
+      "nome": "Carla",
+      "cargo": "Product Owner",
+      "tracos": ["Visão de negócio", "Sempre com pressa"],
+      "fala": "Escrevi a história correndo antes da campanha. Primeira compra é óbvio, né? É quem nunca comprou nada. Pedido cancelado não é compra.",
+      "revela": "historia_usuario",
+      "confiavel": true
+    }
+  ],
+  "caos": [
+    {
+      "id": "caos_frete",
+      "titulo": "Frete grátis não aparece no Norte",
+      "relatos": 3,
+      "resultado": "Regra de frete antiga, documentada. Não tem relação com o cupom."
+    },
+    {
+      "id": "caos_lentidao",
+      "titulo": "Site lento depois das 9h",
+      "relatos": 2,
+      "resultado": "Pico normal de acesso por causa da campanha. Tempo de resposta dentro do esperado."
+    },
+    {
+      "id": "caos_antigos",
+      "titulo": "Clientes antigos pedindo o cupom",
+      "relatos": 6,
+      "resultado": "Parece outro assunto, mas é a mesma dúvida: ninguém definiu se pedido cancelado conta como compra.",
+      "revela": "cliente_antigo"
+    }
+  ],
+  "conexoes": [
+    { "pistas": ["log_checkout", "historia_usuario"], "insight": "Duas regras diferentes para a mesma frase: a história nunca definiu \"primeira compra\"." },
+    { "pistas": ["teste_front", "teste_back"], "insight": "Os dois lados passam nos testes porque cada um testa a própria interpretação." },
+    { "pistas": ["perfil_clientes", "log_checkout"], "insight": "Todos os afetados estão onde as regras discordam: conta nova, mas com pedido anterior." },
+    { "pistas": ["deploy_campanha", "metricas"], "insight": "O abandono no pagamento dispara junto com o lançamento da campanha." },
+    { "pistas": ["cliente_antigo", "historia_usuario"], "insight": "Nem a história responde: pedido cancelado conta como compra?" },
+    { "pistas": ["emails_suporte", "cdn"], "insight": "Acontece no app, que não usa o CDN, e o cache foi limpo antes. Não é cache." }
+  ],
+  "recomendacoes": [
+    {
+      "id": "r_completo",
+      "texto": "Definir a regra com a PO (ex.: nenhum pedido pago), escrever critérios de aceite com exemplos, deixar a regra só no back (o front consulta a API) e honrar o desconto para quem foi afetado",
+      "qualidade": "melhor",
+      "feedback": "Resolve a causa (a ambiguidade), elimina a duplicação que permitiu as regras divergirem e trata os clientes com justiça. Critérios com exemplos evitam o próximo caso."
+    },
+    {
+      "id": "r_front_igual_back",
+      "texto": "Mudar o front para usar a mesma regra do back",
+      "qualidade": "parcial",
+      "feedback": "Acaba com a inconsistência, mas a regra do back também não é a que a PO queria: pedido cancelado continua contando como compra. E os clientes afetados ficam sem resposta."
+    },
+    {
+      "id": "r_honrar",
+      "texto": "Aplicar o desconto manualmente para os 47 clientes que reclamaram",
+      "qualidade": "parcial",
+      "feedback": "Bom para quem reclamou, mas o desconto continua sumindo para todos os próximos clientes."
+    },
+    {
+      "id": "r_cache",
+      "texto": "Limpar o cache do CDN e pedir que os clientes limpem o navegador",
+      "qualidade": "ruim",
+      "feedback": "O cache não tem relação. Os clientes fazem o que você pediu e o problema continua."
+    },
+    {
+      "id": "r_desligar",
+      "texto": "Desligar a campanha até a próxima sprint",
+      "qualidade": "ruim",
+      "feedback": "Para o problema derrubando a campanha inteira, inclusive para os 1.950 clientes em que ela funciona. Corrigir a regra é mais rápido."
+    },
+    {
+      "id": "r_culpa_front",
+      "texto": "Abrir um bug para a Ana: o front está errado",
+      "qualidade": "ruim",
+      "feedback": "A Ana seguiu o que estava escrito e ainda perguntou. Apontar culpados não resolve uma regra que nunca foi definida."
+    }
+  ],
+  "licao": "Dois códigos corretos podem formar um sistema errado. Quando o requisito é ambíguo, cada pessoa preenche a lacuna do seu jeito. QA também testa requisitos: pergunte \"e se o pedido foi cancelado?\" antes de existir código."
+}

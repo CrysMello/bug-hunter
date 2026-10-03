@@ -1,0 +1,265 @@
+{
+  "id": 322,
+  "plataforma": "app",
+  "titulo": "A tela que ninguém consegue usar",
+  "subtitulo": "Depois da nova versão do app, muitos clientes desistem da compra na tela de endereço. Nenhum erro aparece.",
+  "citacao": "Atualizei o aplicativo e não consigo mais terminar a compra. Preencho o endereço e não acontece nada. Não tem botão!",
+  "autorCitacao": "Cliente de 67 anos, pelo telefone do SAC",
+  "impacto": "ALTO",
+  "inicio": "Hoje, 10:05",
+  "ambiente": "App (iOS e Android) · v5.0",
+  "objetivo": "Descubra por que os clientes abandonam a tela nova e recomende a melhor ação. Nenhum erro no log não quer dizer que está funcionando.",
+  "tempoTotal": 8,
+  "ordemColeta": ["funil", "crash", "release_v5", "sac", "desempenho"],
+  "pistas": [
+    {
+      "id": "relato_cliente",
+      "tipo": "relato",
+      "titulo": "Ligação no SAC",
+      "texto": ["\"Não tem botão para continuar\"", "Cliente comprava toda semana pelo app", "Desistiu e foi até a loja física", "App v5.0 · iPhone 11"],
+      "hora": "10:05",
+      "evento": "Primeira ligação ao SAC",
+      "inicial": true
+    },
+    {
+      "id": "funil",
+      "tipo": "metrica",
+      "titulo": "Funil de compra",
+      "texto": ["Etapa Endereço: abandono 12% → 38%", "Outras etapas: sem mudança", "Erros de API nessa etapa: 0"],
+      "hora": "09:00",
+      "evento": "Abandono começa a subir",
+      "refuta": ["h_api_cep"]
+    },
+    {
+      "id": "crash",
+      "tipo": "metrica",
+      "titulo": "Estabilidade do app",
+      "texto": ["Sessões sem crash: 99,8% (igual à v4)", "Na tela de endereço, o app não fecha sozinho", "As sessões terminam com o cliente saindo do app"],
+      "refuta": ["h_crash"]
+    },
+    {
+      "id": "release_v5",
+      "tipo": "codigo",
+      "titulo": "Versão 5.0",
+      "texto": ["Checkout redesenhado", "Botão \"Continuar\" fixo no rodapé da tela", "Aprovado no protótipo, em iPhone 15 com fonte padrão", "Tela nova ligada por feature flag"],
+      "hora": "08:00",
+      "evento": "v5.0 chega às lojas",
+      "apoia": ["h_fonte"]
+    },
+    {
+      "id": "sac",
+      "tipo": "email",
+      "titulo": "Registros do SAC",
+      "texto": ["84 ligações: \"não tem botão para continuar\"", "Maioria acima de 55 anos", "Também alguns jovens"],
+      "apoia": ["h_fonte"]
+    },
+    {
+      "id": "desempenho",
+      "tipo": "metrica",
+      "titulo": "Desempenho da tela",
+      "texto": ["Tempo para abrir: 0,6s em média", "Celulares novos e antigos afetados igualmente", "Nenhuma tela travada registrada"],
+      "refuta": ["h_desempenho"]
+    },
+    {
+      "id": "teste_fonte_grande",
+      "tipo": "comparacao",
+      "titulo": "Teste: fonte padrão x fonte grande",
+      "texto": ["Fonte padrão: botão visível, compra concluída ✔", "Fonte grande (acessibilidade): o botão fica atrás do teclado ✘", "A tela não rola: não há como alcançá-lo", "Acontece em qualquer aparelho com fonte grande"],
+      "apoia": ["h_fonte"]
+    },
+    {
+      "id": "codigo_layout",
+      "tipo": "codigo",
+      "titulo": "Código da tela de endereço",
+      "texto": ["Container: altura fixa (640pt)", "Rolagem: desativada", "Textos: crescem com a fonte do sistema", "O texto cresce, a caixa não"],
+      "apoia": ["h_fonte"]
+    },
+    {
+      "id": "teste_usabilidade",
+      "tipo": "requisito",
+      "titulo": "Teste de usabilidade da v5.0",
+      "texto": ["5 participantes", "Todos de 24 a 32 anos, do próprio time", "Ninguém usava fonte grande ou leitor de tela", "Resultado: \"aprovado por unanimidade\""],
+      "apoia": ["h_fonte"]
+    },
+    {
+      "id": "dica_sac",
+      "tipo": "relato",
+      "titulo": "O truque do SAC",
+      "texto": ["Atendentes pedem para diminuir a letra do celular", "Depois disso, o botão aparece", "Funciona em 9 de cada 10 ligações"],
+      "hora": "11:30",
+      "evento": "SAC descobre o contorno",
+      "apoia": ["h_fonte"]
+    },
+    {
+      "id": "mesmos_usuarios",
+      "tipo": "metrica",
+      "titulo": "Quem abandona",
+      "texto": ["71% compravam na v4 sem problema", "Com fonte padrão: abandono igual em todas as idades", "Com fonte grande: 81% de abandono, em qualquer idade"],
+      "apoia": ["h_fonte"],
+      "refuta": ["h_usuario"]
+    },
+    {
+      "id": "logs_cep",
+      "tipo": "log",
+      "titulo": "Busca de CEP",
+      "texto": ["API de CEP: 99,9% de sucesso", "O endereço é preenchido corretamente", "O cliente só não consegue avançar"],
+      "refuta": ["h_api_cep"]
+    },
+    {
+      "id": "teste_aparelho_antigo",
+      "tipo": "comparacao",
+      "titulo": "Teste em aparelho antigo",
+      "texto": ["Android de 2019, fonte padrão", "Compra concluída em 40s", "Nenhuma lentidão perceptível"],
+      "refuta": ["h_desempenho"]
+    },
+    {
+      "id": "gravacao_sessao",
+      "tipo": "comparacao",
+      "titulo": "Gravação de sessão",
+      "texto": ["Cliente preenche o endereço inteiro", "Tenta rolar, toca em vários pontos da tela", "Depois de 2 minutos, fecha o app"],
+      "apoia": ["h_fonte"],
+      "refuta": ["h_crash"]
+    },
+    {
+      "id": "leitor_tela",
+      "tipo": "email",
+      "titulo": "Leitor de tela",
+      "texto": ["VoiceOver e TalkBack: \"botão, botão, botão\"", "Botões da tela nova sem descrição", "Clientes cegos também não conseguem comprar"],
+      "apoia": ["h_fonte"]
+    }
+  ],
+  "hipoteses": [
+    {
+      "id": "h_api_cep",
+      "texto": "A busca de CEP está falhando e o cliente não consegue avançar",
+      "correta": false,
+      "feedback": "O CEP funciona e o endereço é preenchido certo. O cliente trava depois, quando procura como continuar.",
+      "teste": { "resultado": "Você analisou as chamadas da API de CEP.", "revela": "logs_cep" }
+    },
+    {
+      "id": "h_desempenho",
+      "texto": "A tela nova está lenta em celulares antigos",
+      "correta": false,
+      "feedback": "A tela abre rápido em qualquer aparelho, e celulares novos também são afetados.",
+      "teste": { "resultado": "Você testou num Android de 2019.", "revela": "teste_aparelho_antigo" }
+    },
+    {
+      "id": "h_usuario",
+      "texto": "Clientes mais velhos não sabem usar o app novo",
+      "correta": false,
+      "feedback": "Esses clientes compravam toda semana na versão anterior. O que separa quem abandona é a configuração de fonte, não a idade. Culpar o usuário esconde um problema que é do produto.",
+      "teste": { "resultado": "Você comparou quem abandona por idade e por configuração do celular.", "revela": "mesmos_usuarios" }
+    },
+    {
+      "id": "h_fonte",
+      "texto": "A tela não se adapta à fonte grande do celular: o botão fica escondido atrás do teclado",
+      "correta": true,
+      "feedback": "Isso. Quem usa fonte grande no celular (configuração de acessibilidade comum acima dos 50 anos, mas não só) vê os textos crescerem dentro de uma caixa de altura fixa e sem rolagem. O botão Continuar sai da tela, fica atrás do teclado e não há como alcançá-lo. Nada quebra, nenhum erro aparece: o cliente simplesmente não consegue.",
+      "teste": { "resultado": "Você repetiu a compra com a fonte grande do sistema ligada.", "revela": "teste_fonte_grande" }
+    },
+    {
+      "id": "h_crash",
+      "texto": "O app está fechando sozinho nessa tela",
+      "correta": false,
+      "feedback": "A taxa de crash é a mesma de sempre. Quem fecha o app é o cliente, depois de procurar o botão por minutos.",
+      "teste": { "resultado": "Você assistiu a gravações de sessão da tela de endereço.", "revela": "gravacao_sessao" }
+    }
+  ],
+  "devs": [
+    {
+      "id": "bia",
+      "nome": "Bia",
+      "cargo": "Designer de Produto",
+      "tracos": ["Visual impecável", "Desenha no iPhone 15"],
+      "fala": "A tela nova ficou linda e limpa! Testamos com 5 pessoas e todas aprovaram. Talvez o público mais velho precise de um tutorial.",
+      "revela": "teste_usabilidade",
+      "confiavel": false
+    },
+    {
+      "id": "caio",
+      "nome": "Caio",
+      "cargo": "Desenvolvedor Mobile",
+      "tracos": ["Fiel ao protótipo", "Pixel por pixel"],
+      "fala": "Usei altura fixa em tudo para ficar igual ao protótipo, pixel por pixel. No meu celular está perfeito.",
+      "revela": "codigo_layout",
+      "confiavel": true
+    },
+    {
+      "id": "sonia",
+      "nome": "Sônia",
+      "cargo": "Supervisora do SAC",
+      "tracos": ["Ouve o cliente", "Paciente"],
+      "fala": "Os clientes ligam dizendo que não tem botão. Quando peço para diminuírem a letra do celular, o botão aparece! Achei que era coincidência.",
+      "revela": "dica_sac",
+      "confiavel": true
+    }
+  ],
+  "caos": [
+    {
+      "id": "caos_icone",
+      "titulo": "Ícone novo parecido com o de outro app",
+      "relatos": 12,
+      "resultado": "Discussão de marca nas redes sociais. Não impede ninguém de comprar."
+    },
+    {
+      "id": "caos_leitor",
+      "titulo": "Leitor de tela só fala \"botão, botão\"",
+      "relatos": 3,
+      "resultado": "Parece outro bug, mas tem a mesma origem: a tela nova nunca foi testada com recursos de acessibilidade.",
+      "revela": "leitor_tela"
+    },
+    {
+      "id": "caos_push",
+      "titulo": "Promoção chegando às 3h da manhã",
+      "relatos": 5,
+      "resultado": "A campanha foi agendada em UTC (lembra o Caso #319?). Bug real, mas sem relação com a tela de endereço."
+    }
+  ],
+  "conexoes": [
+    { "pistas": ["dica_sac", "teste_fonte_grande"], "insight": "Diminuir a fonte faz o botão voltar: a fonte grande é o gatilho." },
+    { "pistas": ["codigo_layout", "teste_fonte_grande"], "insight": "O texto cresce e a caixa não. Com altura fixa e sem rolagem, o botão sai da tela." },
+    { "pistas": ["teste_usabilidade", "sac"], "insight": "O teste ouviu 5 pessoas do próprio time. O SAC ouviu 84 clientes reais." },
+    { "pistas": ["release_v5", "funil"], "insight": "O abandono triplica exatamente na etapa redesenhada da v5.0." },
+    { "pistas": ["mesmos_usuarios", "teste_fonte_grande"], "insight": "Não é idade, é configuração: quem usa fonte grande não avança, tenha a idade que tiver." },
+    { "pistas": ["leitor_tela", "codigo_layout"], "insight": "Fonte grande e leitor de tela falharam juntos: a tela nunca foi testada com acessibilidade." }
+  ],
+  "recomendacoes": [
+    {
+      "id": "r_completo",
+      "texto": "Voltar a tela antiga pela feature flag agora, corrigir o layout (altura flexível, rolagem, botão acima do teclado, botões com descrição) e testar com fonte grande, leitor de tela e pessoas de perfis variados antes de religar",
+      "qualidade": "melhor",
+      "feedback": "A feature flag estanca a perda hoje, sem esperar a revisão da loja. A correção atende quem precisa de letra grande e de leitor de tela, e o processo de teste passa a enxergar esses clientes."
+    },
+    {
+      "id": "r_flag",
+      "texto": "Voltar a tela antiga pela feature flag",
+      "qualidade": "parcial",
+      "feedback": "Resolve a perda imediata sem depender da loja de apps, mas a tela nova continua inacessível e vai quebrar de novo quando for religada."
+    },
+    {
+      "id": "r_sac",
+      "texto": "Orientar o SAC a pedir que os clientes diminuam a letra do celular",
+      "qualidade": "parcial",
+      "feedback": "É um contorno útil para quem liga, mas a maioria desiste sem ligar, e quem precisa de letra grande passa a não conseguir ler."
+    },
+    {
+      "id": "r_tutorial",
+      "texto": "Criar um tutorial para ensinar os clientes mais velhos a usar a tela nova",
+      "qualidade": "ruim",
+      "feedback": "Não há o que ensinar: o botão está fora do alcance. O tutorial transfere para o cliente um problema que é do produto."
+    },
+    {
+      "id": "r_travar_fonte",
+      "texto": "Impedir que a fonte cresça dentro do app",
+      "qualidade": "ruim",
+      "feedback": "O botão volta a aparecer, mas quem precisa de letra grande deixa de conseguir ler o app. Troca um problema de acessibilidade por outro."
+    },
+    {
+      "id": "r_botao_maior",
+      "texto": "Aumentar o tamanho do botão Continuar",
+      "qualidade": "ruim",
+      "feedback": "Um botão maior continua escondido atrás do teclado. O problema não é o tamanho, é onde ele está."
+    }
+  ],
+  "licao": "Uma tela pode estar tecnicamente perfeita e mesmo assim ninguém conseguir usar. Nenhum erro no log não quer dizer que funciona. Teste com fonte grande, leitor de tela e pessoas diferentes do time: acessibilidade é requisito, não detalhe."
+}

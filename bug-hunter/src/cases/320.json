@@ -1,0 +1,263 @@
+{
+  "id": 320,
+  "plataforma": "ci",
+  "titulo": "O teste que às vezes passa",
+  "subtitulo": "Um teste falha de vez em quando e o time quer silenciá-lo para liberar a release.",
+  "citacao": "Esse teste de novo! Falhou, rodei de novo e passou. Posso marcar como flaky e liberar a release antes da promoção?",
+  "autorCitacao": "Marcos, Tech Lead, no canal do time",
+  "impacto": "ALTO",
+  "inicio": "Hoje, 09:30",
+  "ambiente": "CI / Pipeline de release",
+  "objetivo": "Decida se o teste é o problema ou se ele está apontando um. Antes de silenciar um alarme, descubra por que ele toca.",
+  "tempoTotal": 8,
+  "ordemColeta": ["historico_ci", "log_teste", "plano_release", "suporte", "infra_ci"],
+  "pistas": [
+    {
+      "id": "relato_lider",
+      "tipo": "relato",
+      "titulo": "Mensagem do Tech Lead",
+      "texto": ["test_reserva_concorrente falhou de novo", "Re-run passou", "\"Posso pular e liberar?\"", "Release v5.2 marcada para 10:30"],
+      "hora": "09:30",
+      "evento": "Pedido para pular o teste",
+      "inicial": true
+    },
+    {
+      "id": "historico_ci",
+      "tipo": "metrica",
+      "titulo": "Histórico do CI",
+      "texto": ["test_reserva_concorrente: 23 falhas em 180 execuções (13%)", "Outros 1.204 testes: nenhuma falha", "Re-run desta manhã passou às 09:19"],
+      "hora": "09:19",
+      "evento": "Re-run passa",
+      "apoia": ["h_corrida"]
+    },
+    {
+      "id": "log_teste",
+      "tipo": "log",
+      "titulo": "Log da falha",
+      "texto": ["2 clientes reservam a última unidade ao mesmo tempo", "Esperado: 1 aceita, 1 recusada", "Obtido: 2 aceitas · estoque = -1", "Tempo do teste: 0,4s (sem timeout)"],
+      "hora": "09:12",
+      "evento": "Pipeline falha",
+      "apoia": ["h_corrida"],
+      "refuta": ["h_teste_ruim"]
+    },
+    {
+      "id": "plano_release",
+      "tipo": "ambiente",
+      "titulo": "Plano do dia",
+      "texto": ["10:30 · release v5.2", "11:00 · promoção-relâmpago", "300 produtos com 1 a 3 unidades", "Tráfego esperado: 40x o normal"],
+      "hora": "11:00",
+      "evento": "Promoção-relâmpago"
+    },
+    {
+      "id": "suporte",
+      "tipo": "email",
+      "titulo": "Chamados do suporte",
+      "texto": ["9 reclamações nas últimas 3 semanas", "\"Paguei e depois disseram que não tinha estoque\"", "Todas em produtos com 1 unidade", "Quase todas durante promoções"],
+      "apoia": ["h_corrida"]
+    },
+    {
+      "id": "infra_ci",
+      "tipo": "ambiente",
+      "titulo": "Máquinas do CI",
+      "texto": ["CPU média dos runners: 35%", "Sem fila de jobs", "As falhas aparecem em runners diferentes"],
+      "refuta": ["h_ci"]
+    },
+    {
+      "id": "retry_config",
+      "tipo": "config",
+      "titulo": "Configuração do CI",
+      "texto": ["retries: 3 (adicionado há 3 semanas)", "Commit: \"teste flaky, tirando ruído do pipeline\"", "Desde então: pipeline sempre verde"],
+      "apoia": ["h_corrida"]
+    },
+    {
+      "id": "codigo_reserva",
+      "tipo": "codigo",
+      "titulo": "Código da reserva",
+      "texto": ["estoque = buscar_estoque(produto)", "if estoque > 0:", "    salvar_estoque(produto, estoque - 1)", "# leitura e escrita separadas, sem trava"],
+      "apoia": ["h_corrida"]
+    },
+    {
+      "id": "teste_motivo",
+      "tipo": "requisito",
+      "titulo": "Por que o teste existe",
+      "texto": ["Criado após incidente de estoque negativo em maio", "Objetivo: a última unidade vende uma vez só", "Autor: Tiago (QA)"],
+      "apoia": ["h_corrida"]
+    },
+    {
+      "id": "stress_test",
+      "tipo": "comparacao",
+      "titulo": "Reservas: em paralelo x em sequência",
+      "texto": ["200 pares de reservas simultâneas: 26 vendas duplicadas", "200 pares de reservas em sequência: 0 problemas", "Só falha quando há concorrência"],
+      "apoia": ["h_corrida"]
+    },
+    {
+      "id": "teste_isolado",
+      "tipo": "log",
+      "titulo": "Teste rodado sozinho",
+      "texto": ["Só esse teste, 200 vezes seguidas", "Banco novo a cada execução", "Falhou 26 vezes (13%)"],
+      "refuta": ["h_ordem", "h_banco"]
+    },
+    {
+      "id": "timeout_dobrado",
+      "tipo": "log",
+      "titulo": "Timeout aumentado",
+      "texto": ["Timeout do teste: 2s → 10s", "Taxa de falha: continua 13%", "A falha não é demora, é resultado errado"],
+      "refuta": ["h_teste_ruim"]
+    },
+    {
+      "id": "teste_local",
+      "tipo": "comparacao",
+      "titulo": "Teste no notebook",
+      "texto": ["Rodado 200 vezes fora do CI", "Falhou 25 vezes", "Mesmo padrão: 2 reservas aceitas"],
+      "refuta": ["h_ci"]
+    },
+    {
+      "id": "banco_limpo",
+      "tipo": "ambiente",
+      "titulo": "Banco de teste",
+      "texto": ["Recriado do zero a cada execução", "Fixture: 1 produto, estoque 1", "Nenhum dado sobrando entre testes"],
+      "refuta": ["h_banco"]
+    },
+    {
+      "id": "estoque_negativo",
+      "tipo": "metrica",
+      "titulo": "Estoque negativo em produção",
+      "texto": ["4 produtos com estoque -1 no painel", "Todos vendidos durante promoções", "O mesmo -1 que o teste mostra"],
+      "apoia": ["h_corrida"]
+    }
+  ],
+  "hipoteses": [
+    {
+      "id": "h_ci",
+      "texto": "As máquinas do CI estão lentas ou instáveis",
+      "correta": false,
+      "feedback": "O CI está folgado e o teste falha do mesmo jeito no notebook. A infraestrutura é inocente.",
+      "teste": { "resultado": "Você rodou o teste 200 vezes fora do CI.", "revela": "teste_local" }
+    },
+    {
+      "id": "h_ordem",
+      "texto": "Os testes compartilham estado e dependem da ordem de execução",
+      "correta": false,
+      "feedback": "É uma causa comum de teste instável, mas aqui não: rodando sozinho, com banco novo, ele falha na mesma taxa.",
+      "teste": { "resultado": "Você isolou o teste e rodou só ele, 200 vezes.", "revela": "teste_isolado" }
+    },
+    {
+      "id": "h_teste_ruim",
+      "texto": "O teste está mal escrito (timeout curto demais)",
+      "correta": false,
+      "feedback": "O teste termina em 0,4s e falha por um resultado errado, não por demora. Ele está fazendo exatamente o que deveria.",
+      "teste": { "resultado": "Você aumentou o timeout para 10s e rodou de novo.", "revela": "timeout_dobrado" }
+    },
+    {
+      "id": "h_corrida",
+      "texto": "Condição de corrida real no código de reserva de estoque",
+      "correta": true,
+      "feedback": "Exato. O código lê o estoque e grava em passos separados. Quando duas reservas chegam juntas, as duas leem \"1\", as duas vendem e o estoque vai para -1. O teste falha às vezes porque a corrida depende do tempo. O teste estava certo o tempo todo.",
+      "teste": { "resultado": "Você comparou reservas em paralelo e em sequência.", "revela": "stress_test" }
+    },
+    {
+      "id": "h_banco",
+      "texto": "O banco de teste tem dados sujos de outras execuções",
+      "correta": false,
+      "feedback": "O banco é recriado do zero a cada execução, com um único produto. Não há sujeira para culpar.",
+      "teste": { "resultado": "Você conferiu como o banco de teste é montado.", "revela": "banco_limpo" }
+    }
+  ],
+  "devs": [
+    {
+      "id": "marcos",
+      "nome": "Marcos",
+      "cargo": "Tech Lead",
+      "tracos": ["Pressionado pelo prazo", "Pragmático"],
+      "fala": "Esse teste sempre foi chato, por isso ligamos o retry. Se a gente pular só hoje, a release sai antes da promoção. Depois a gente olha.",
+      "revela": "retry_config",
+      "confiavel": false
+    },
+    {
+      "id": "julia",
+      "nome": "Júlia",
+      "cargo": "Desenvolvedora Backend",
+      "tracos": ["Autora da reserva", "Honesta"],
+      "fala": "A reserva é simples: leio o estoque e, se tiver, diminuo um. Testei várias vezes na minha máquina clicando e nunca vi falhar.",
+      "revela": "codigo_reserva",
+      "confiavel": true
+    },
+    {
+      "id": "tiago",
+      "nome": "Tiago",
+      "cargo": "QA Pleno",
+      "tracos": ["Escreveu o teste", "Desconfiado"],
+      "fala": "Escrevi esse teste justamente depois do estoque negativo de maio. Quando começou a falhar, me pediram para ligar o retry...",
+      "revela": "teste_motivo",
+      "confiavel": true
+    }
+  ],
+  "caos": [
+    {
+      "id": "caos_pdf",
+      "titulo": "Teste de PDF quebra no Windows",
+      "relatos": 2,
+      "resultado": "Barra invertida no caminho do arquivo. Bug real, mas sem relação com o estoque."
+    },
+    {
+      "id": "caos_estoque",
+      "titulo": "Estoque negativo no painel do admin",
+      "relatos": 4,
+      "resultado": "Parece problema do painel, mas o -1 está no banco de produção. É o mesmo bug que o teste encontra, acontecendo com clientes reais.",
+      "revela": "estoque_negativo"
+    },
+    {
+      "id": "caos_pipeline",
+      "titulo": "Pipeline demorando 18 minutos",
+      "relatos": 5,
+      "resultado": "O cache de dependências foi desligado sem querer. Irritante, mas não muda nenhum resultado."
+    }
+  ],
+  "conexoes": [
+    { "pistas": ["log_teste", "suporte"], "insight": "O teste reproduz o que os clientes viveram: a última unidade vendida duas vezes." },
+    { "pistas": ["codigo_reserva", "stress_test"], "insight": "Ler e gravar em passos separados: duas reservas leem \"1\" ao mesmo tempo e ambas vendem." },
+    { "pistas": ["retry_config", "historico_ci"], "insight": "O retry não consertou nada, só escondeu: os 13% de falha continuam lá." },
+    { "pistas": ["retry_config", "suporte"], "insight": "As reclamações começaram junto com o retry. O alarme foi desligado e o incêndio continuou." },
+    { "pistas": ["estoque_negativo", "log_teste"], "insight": "Estoque -1 no teste e estoque -1 em produção: é o mesmo bug." },
+    { "pistas": ["plano_release", "stress_test"], "insight": "A promoção das 11h é concorrência máxima: o pior momento possível para liberar esse bug." }
+  ],
+  "recomendacoes": [
+    {
+      "id": "r_completo",
+      "texto": "Segurar a release, tornar a reserva atômica (UPDATE ... WHERE estoque > 0 ou trava), tirar o retry desse teste, rodá-lo em loop no CI e revisar as vendas duplicadas",
+      "qualidade": "melhor",
+      "feedback": "Corrige o bug antes do pico da promoção, devolve ao teste o poder de alarmar e cuida dos clientes que já foram afetados. Atrasar a release meia hora custa muito menos que centenas de vendas sem estoque."
+    },
+    {
+      "id": "r_corrigir_liberar",
+      "texto": "Tornar a reserva atômica e liberar a release",
+      "qualidade": "parcial",
+      "feedback": "Resolve o bug de hoje, mas o retry continua lá para esconder o próximo, e os clientes afetados nas últimas semanas ficam sem resposta."
+    },
+    {
+      "id": "r_adiar_promo",
+      "texto": "Adiar a promoção e investigar com calma",
+      "qualidade": "parcial",
+      "feedback": "Reduz o risco imediato, mas o bug segue vendendo sem estoque no tráfego normal, e a investigação já tem a resposta."
+    },
+    {
+      "id": "r_quarentena",
+      "texto": "Marcar o teste como flaky (quarentena) e liberar a release",
+      "qualidade": "ruim",
+      "feedback": "Desliga o único alarme que funciona, logo antes do momento de maior concorrência do mês."
+    },
+    {
+      "id": "r_retry5",
+      "texto": "Aumentar o retry para 5 tentativas",
+      "qualidade": "ruim",
+      "feedback": "Com 5 tentativas o teste quase nunca falha, e o bug fica ainda mais escondido. O problema nunca foi o pipeline vermelho."
+    },
+    {
+      "id": "r_sequencial",
+      "texto": "Reescrever o teste para fazer as reservas em sequência, sem concorrência",
+      "qualidade": "ruim",
+      "feedback": "O teste passa 100% das vezes, mas para de testar a única coisa que importava. É a armadilha mais perigosa: um teste verde que não protege nada."
+    }
+  ],
+  "licao": "Teste instável nem sempre é teste ruim. Às vezes é o único que enxerga um bug que depende de sorte, como concorrência. Antes de silenciar um teste, descubra o que ele está tentando dizer."
+}

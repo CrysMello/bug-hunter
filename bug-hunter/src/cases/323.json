@@ -1,0 +1,256 @@
+{
+  "id": 323,
+  "plataforma": "app",
+  "titulo": "A atualização que apagou os favoritos",
+  "subtitulo": "Depois da versão 6.1, muitos clientes abriram o app e encontraram listas e favoritos vazios.",
+  "citacao": "Atualizei o app e sumiram todas as minhas listas e favoritos. Anos montando, e agora nada!",
+  "autorCitacao": "Cliente, em avaliação na loja de apps",
+  "impacto": "ALTO",
+  "inicio": "Hoje, 11:00",
+  "ambiente": "App de mercado (iOS e Android) · v6.1",
+  "objetivo": "Descubra por que alguns clientes perderam os dados ao atualizar e recomende a melhor ação. Lembre: no celular, os clientes não atualizam na ordem que o time imagina.",
+  "tempoTotal": 8,
+  "ordemColeta": ["avaliacoes", "log_app", "release_notes", "versoes", "api_logs"],
+  "pistas": [
+    {
+      "id": "relato_cliente",
+      "tipo": "relato",
+      "titulo": "Avaliação na loja",
+      "texto": ["★☆☆☆☆ \"Sumiram minhas 9 listas e 140 favoritos\"", "\"Fazia tempo que eu não atualizava\"", "Mesma conta, mesmo celular", "App v6.1 · Android"],
+      "inicial": true
+    },
+    {
+      "id": "avaliacoes",
+      "tipo": "metrica",
+      "titulo": "Avaliações desde ontem",
+      "texto": ["212 avaliações com \"favoritos sumiram\"", "Android e iOS, em várias versões do sistema", "Frase repetida: \"fazia tempo que não atualizava\""],
+      "hora": "09:30",
+      "evento": "Pico de avaliações negativas",
+      "apoia": ["h_migracao"],
+      "refuta": ["h_sistema"]
+    },
+    {
+      "id": "log_app",
+      "tipo": "log",
+      "titulo": "Log do app ao abrir a 6.1",
+      "texto": ["[app] versão anterior: 5.8 → 6.1", "[app] migração do banco local: FALHOU (sem caminho 5 → 6)", "[app] plano B: banco recriado do zero", "[app] listas: 0 · favoritos: 0"],
+      "hora": "08:12",
+      "evento": "Primeiro banco recriado",
+      "apoia": ["h_migracao"]
+    },
+    {
+      "id": "release_notes",
+      "tipo": "codigo",
+      "titulo": "Versão 6.1",
+      "texto": ["Novo banco local para listas e favoritos", "Testada: instalação limpa e atualização 6.0 → 6.1", "Liberada para 100% de uma vez, sem lançamento gradual"],
+      "hora": "07:00",
+      "evento": "v6.1 liberada para todos",
+      "apoia": ["h_migracao"]
+    },
+    {
+      "id": "versoes",
+      "tipo": "metrica",
+      "titulo": "Perda de dados por versão anterior",
+      "texto": ["Vindos da 6.0: 0,1% perderam dados", "Vindos da 5.x: 100% perderam dados", "38% da base estava na 5.x (atualização automática desligada)"],
+      "apoia": ["h_migracao"],
+      "refuta": ["h_sistema", "h_espaco"]
+    },
+    {
+      "id": "api_logs",
+      "tipo": "log",
+      "titulo": "Logs da API de contas",
+      "texto": ["Nenhuma exclusão de favoritos registrada", "Nenhuma chamada fora do normal desde ontem"],
+      "refuta": ["h_servidor"]
+    },
+    {
+      "id": "arquitetura",
+      "tipo": "ambiente",
+      "titulo": "Onde ficam os favoritos",
+      "texto": ["Listas e favoritos: só no banco do celular", "Nenhuma cópia no servidor", "Decisão de 2021: \"para funcionar offline\"", "Sincronização no roadmap desde 2022"],
+      "refuta": ["h_servidor"]
+    },
+    {
+      "id": "codigo_migracao",
+      "tipo": "codigo",
+      "titulo": "Código da migração",
+      "texto": ["migracoes = [MIGRACAO_6_0_PARA_6_1]", "Não existe passo 5.x → 6.0", "se falhar: recriarBancoDoZero()  // \"evita crash\""],
+      "apoia": ["h_migracao"]
+    },
+    {
+      "id": "plano_teste",
+      "tipo": "requisito",
+      "titulo": "Plano de testes da 6.1",
+      "texto": ["Instalação limpa ✔", "Atualização 6.0 → 6.1 ✔", "Nenhum cenário partindo de versões antigas"],
+      "apoia": ["h_migracao"]
+    },
+    {
+      "id": "teste_upgrade",
+      "tipo": "comparacao",
+      "titulo": "Teste de atualização",
+      "texto": ["Instala 6.0 com favoritos → atualiza: tudo preservado ✔", "Instala 5.8 com favoritos → atualiza: tudo apagado ✘", "Repetido 10 vezes: mesmo resultado"],
+      "apoia": ["h_migracao"]
+    },
+    {
+      "id": "sessoes",
+      "tipo": "log",
+      "titulo": "Sessões dos afetados",
+      "texto": ["Todos continuam logados", "Mesmo ID de usuário antes e depois", "Nenhuma troca de conta"],
+      "refuta": ["h_logout"]
+    },
+    {
+      "id": "armazenamento",
+      "tipo": "metrica",
+      "titulo": "Espaço nos aparelhos",
+      "texto": ["Espaço livre médio dos afetados: 21 GB", "Nenhum alerta de armazenamento cheio"],
+      "refuta": ["h_espaco"]
+    },
+    {
+      "id": "sistemas",
+      "tipo": "metrica",
+      "titulo": "Sistemas dos afetados",
+      "texto": ["Várias versões de Android e de iOS", "Nenhuma atualização de sistema em comum", "O que todos têm em comum: vieram da 5.x"],
+      "refuta": ["h_sistema"]
+    },
+    {
+      "id": "preferencias_resetadas",
+      "tipo": "email",
+      "titulo": "Preferências de volta ao padrão",
+      "texto": ["Tema, CEP salvo e filtros voltaram ao padrão", "Mesmos clientes que perderam os favoritos", "Tudo que estava no banco local sumiu junto"],
+      "apoia": ["h_migracao"]
+    }
+  ],
+  "hipoteses": [
+    {
+      "id": "h_servidor",
+      "texto": "Um bug na API apagou os favoritos no servidor",
+      "correta": false,
+      "feedback": "Os favoritos nem ficam no servidor: estão só no celular. A API não registrou nenhuma exclusão.",
+      "teste": { "resultado": "Você foi descobrir onde os favoritos ficam guardados.", "revela": "arquitetura" }
+    },
+    {
+      "id": "h_logout",
+      "texto": "O app trocou ou deslogou a conta dos clientes",
+      "correta": false,
+      "feedback": "Todos continuam na mesma conta. Os dados sumiram do aparelho, não da conta.",
+      "teste": { "resultado": "Você conferiu as sessões dos clientes afetados.", "revela": "sessoes" }
+    },
+    {
+      "id": "h_migracao",
+      "texto": "A atualização do banco local falha para quem pulou versões, e o app recria o banco vazio",
+      "correta": true,
+      "feedback": "Isso. A 6.1 só sabe migrar o banco a partir da 6.0. Quem estava na 5.x (38% da base, com atualização automática desligada) não tem caminho, a migração falha e o \"plano B\" recria o banco do zero, sem erro e sem aviso. Como os favoritos só existem no celular, foram perdidos.",
+      "teste": { "resultado": "Você instalou versões antigas, criou favoritos e atualizou para a 6.1.", "revela": "teste_upgrade" }
+    },
+    {
+      "id": "h_espaco",
+      "texto": "Celulares sem espaço apagaram os dados do app",
+      "correta": false,
+      "feedback": "Os aparelhos afetados têm espaço de sobra. O que eles têm em comum é a versão de onde vieram.",
+      "teste": { "resultado": "Você olhou o armazenamento dos aparelhos afetados.", "revela": "armazenamento" }
+    },
+    {
+      "id": "h_sistema",
+      "texto": "Uma atualização do sistema operacional limpou os dados de apps",
+      "correta": false,
+      "feedback": "Afeta Android e iOS, em várias versões. Nenhuma atualização de sistema explica isso; a versão anterior do app explica tudo.",
+      "teste": { "resultado": "Você agrupou os afetados por sistema e versão.", "revela": "sistemas" }
+    }
+  ],
+  "devs": [
+    {
+      "id": "rodrigo",
+      "nome": "Rodrigo",
+      "cargo": "Desenvolvedor Mobile",
+      "tracos": ["Escreveu a migração", "Otimista"],
+      "fala": "Fiz a migração da 6.0 para a 6.1 e testei. Coloquei um plano B para o app nunca travar. Quem estava numa versão tão antiga devia ter atualizado antes, né?",
+      "revela": "codigo_migracao",
+      "confiavel": false
+    },
+    {
+      "id": "helena",
+      "nome": "Helena",
+      "cargo": "QA Mobile",
+      "tracos": ["Metódica", "Testa a versão atual"],
+      "fala": "Testei instalação limpa e atualização a partir da 6.0, que é a versão atual. Não pensei em quem estava mais atrás.",
+      "revela": "plano_teste",
+      "confiavel": true
+    },
+    {
+      "id": "otavio",
+      "nome": "Otávio",
+      "cargo": "Product Manager",
+      "tracos": ["Visão de produto", "Prioriza o novo"],
+      "fala": "Salvar favoritos no servidor está no roadmap desde 2022, mas sempre perdia prioridade. E liberamos para todo mundo de uma vez porque estava tudo verde.",
+      "revela": "arquitetura",
+      "confiavel": true
+    }
+  ],
+  "caos": [
+    {
+      "id": "caos_tema",
+      "titulo": "Tema do app voltou para o claro sozinho",
+      "relatos": 8,
+      "resultado": "Parece um detalhe visual, mas são os mesmos clientes: o banco local inteiro foi recriado, não só os favoritos.",
+      "revela": "preferencias_resetadas"
+    },
+    {
+      "id": "caos_compartilhar",
+      "titulo": "Botão de compartilhar lista sumiu",
+      "relatos": 3,
+      "resultado": "Removido de propósito na 6.1 e anunciado nas notas da versão. Sem relação."
+    },
+    {
+      "id": "caos_tamanho",
+      "titulo": "App ficou pesado (180 MB)",
+      "relatos": 4,
+      "resultado": "Imagens novas sem compressão. Vale corrigir, mas não apaga dados de ninguém."
+    }
+  ],
+  "conexoes": [
+    { "pistas": ["versoes", "codigo_migracao"], "insight": "Não existe caminho da 5.x para a 6.1: por isso só quem pulou versão perde tudo." },
+    { "pistas": ["log_app", "codigo_migracao"], "insight": "A migração falha e o plano B recria o banco vazio. Sem erro, sem aviso, sem favoritos." },
+    { "pistas": ["plano_teste", "teste_upgrade"], "insight": "O teste cobriu a atualização que o time faz, não a que os clientes fazem." },
+    { "pistas": ["arquitetura", "log_app"], "insight": "Sem cópia no servidor, apagar o banco do celular é perder os dados para sempre." },
+    { "pistas": ["preferencias_resetadas", "log_app"], "insight": "O tema voltou ao padrão porque o banco inteiro foi recriado, não só os favoritos." },
+    { "pistas": ["release_notes", "avaliacoes"], "insight": "Liberada para 100% de uma vez: quando as reclamações chegaram, quase todos já tinham atualizado." }
+  ],
+  "recomendacoes": [
+    {
+      "id": "r_completo",
+      "texto": "Pausar a distribuição da 6.1 nas lojas, publicar correção com migração passo a passo desde a 5.x e sem apagar o banco se falhar, avisar os afetados com transparência e testar atualizações a partir de todas as versões em uso",
+      "qualidade": "melhor",
+      "feedback": "Pausar protege quem ainda não atualizou. A migração encadeada resolve a causa, e tirar o \"plano B\" destrutivo impede perdas silenciosas no futuro. Ser honesto com quem perdeu os dados preserva a confiança. Depois disso, a sincronização com o servidor deixa de ser opcional."
+    },
+    {
+      "id": "r_pausar",
+      "texto": "Pausar a distribuição da 6.1 nas lojas",
+      "qualidade": "parcial",
+      "feedback": "Boa primeira ação: protege quem ainda não atualizou. Mas sem corrigir a migração, essas pessoas perdem tudo assim que a distribuição voltar."
+    },
+    {
+      "id": "r_sincronizar",
+      "texto": "Priorizar a sincronização dos favoritos com o servidor",
+      "qualidade": "parcial",
+      "feedback": "É a proteção certa para o futuro, mas leva semanas. Enquanto isso, a 6.1 continua apagando dados."
+    },
+    {
+      "id": "r_republicar_60",
+      "texto": "Publicar a versão 6.0 de novo nas lojas",
+      "qualidade": "ruim",
+      "feedback": "As lojas não deixam \"voltar\" de versão, e quem já está na 6.1 tem um banco que a 6.0 não entende. Risco de o app nem abrir."
+    },
+    {
+      "id": "r_forcar",
+      "texto": "Obrigar todos a atualizar para a 6.1 imediatamente",
+      "qualidade": "ruim",
+      "feedback": "Acelera o estrago: todos os clientes ainda na 5.x perderiam os dados de uma vez."
+    },
+    {
+      "id": "r_recriar",
+      "texto": "Pedir aos clientes que montem os favoritos de novo",
+      "qualidade": "ruim",
+      "feedback": "Transfere o prejuízo para o cliente e não impede que aconteça com o próximo."
+    }
+  ],
+  "licao": "Clientes não atualizam o app na ordem que o time imagina: tem gente que pula várias versões. Teste a atualização a partir de todas as versões ainda em uso, nunca apague dados como plano B e libere aos poucos, para que um erro atinja poucos."
+}
