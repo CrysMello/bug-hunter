@@ -213,9 +213,10 @@ function LinhaDoTempo({ caso, inv }: { caso: Caso; inv: Investigacao }) {
   const eventos = inv.pistasReveladas.map(id => pista(caso, id)).filter(p => p.hora).sort((a, b) => minutos(a.hora!) - minutos(b.hora!))
   // A escala usa todos os horários do caso (não só os revelados), para os eventos não "pularem" de lugar.
   const horas = caso.pistas.filter(p => p.hora).map(p => minutos(p.hora!))
-  const ini = Math.floor(Math.min(...horas, 600) / 30) * 30
-  const fim = Math.max(ini + 60, Math.ceil((Math.max(...horas, 600) + 10) / 30) * 30)
-  const passo = fim - ini <= 60 ? 10 : fim - ini <= 180 ? 30 : 60
+  const ini = Math.floor((horas.length ? Math.min(...horas) : 600) / 30) * 30
+  const fim = Math.max(ini + 60, Math.ceil(((horas.length ? Math.max(...horas) : 600) + 10) / 30) * 30)
+  // No máximo 4 rótulos no eixo, para não se sobreporem no card estreito.
+  const passo = [10, 15, 30, 60, 120, 180].find(p => (fim - ini) / p <= 3) ?? 180
   const pos = (h: string) => Math.min(100, Math.max(0, ((minutos(h) - ini) / (fim - ini)) * 100))
   const fmt = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
   const marcas = Array.from({ length: (fim - ini) / passo + 1 }, (_, i) => fmt(ini + i * passo))

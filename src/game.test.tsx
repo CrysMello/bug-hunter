@@ -131,6 +131,7 @@ describe('caso 319', () => {
 
     // linha do tempo do 319 usa a escala da noite (21:00–23:30)
     expect(document.querySelector('.eixo')!.textContent).toContain('21:00')
+    expect(document.querySelector('.eixo')!.textContent).not.toContain('10:00')
 
     clicar(/Recomendar ação/)
     const modal = screen.getByRole('dialog')
